@@ -1,0 +1,9 @@
+# Executables
+*/cahn-hilliard
+*/parallel
+
+# Outputs
+*.dat
+*.log
+*.out
+*.png

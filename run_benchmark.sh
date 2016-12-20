@@ -126,9 +126,8 @@ for (( i=0; i<$n; i++ ))
 do
 	exstart=$(date +%s)
 	j=$(($i+1))
-	cd $examples/${exdirs[$i]}
-	printf "%2d/%2d %-52s\t" $j $n ${exdirs[$i]}
-	echo $(date) >test.log
+	cd $problems/${exdirs[$i]}
+	printf "%1d/%1d %-52s\t" $j $n ${exdirs[$i]}
 	if make $MFLAG
 	then
 		((nSerBld++))
@@ -144,8 +143,8 @@ do
 	if [[ -f parallel ]] && [[ ! $NEXEC ]]
 	then
 		# Run the example in parallel, for speed.
-		mpirun -np $CORES ./parallel --example 2 test.0000.dat 1>test.log 2>error.log \
-		&& mpirun -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>test.log 2>>error.log
+		mpirun -np $CORES ./parallel --example 2 test.0000.dat 1>results.log 2>error.log \
+		&& mpirun -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>results.log 2>>error.log
 		# Return codes are not reliable. Save errors to disk for postmortem.
 		if [[ -f error.log ]] && [[ $(wc -w error.log) > 1 ]]
 		then
@@ -164,7 +163,7 @@ do
 				# Show the result
 				for f in *.dat
 				do
-					mmsp2png --zoom $f >>test.log
+					mmsp2png --zoom $f >>results.log
 				done
 			fi
 			exfin=$(date +%s)
@@ -181,7 +180,7 @@ do
 	then
 		make -s clean
 		rm -f test.*.dat
-		rm -f test.log
+		rm -f results.log
 		rm -f error.log
 		rm -f test.*.png
 	fi
@@ -210,7 +209,7 @@ then
 	printf ", %2d failed" $nRunErr
 fi
 echo
-cd ../test/
+cd ${problems}
 
 AllERR=$(echo "$nSerErr+$nParErr+$nRunErr" | bc -l)
 if [[ $AllERR > 0 ]]

@@ -3,7 +3,7 @@
 # Questions/comments to trevor.keller@gmail.com (Trevor Keller)
 
 # includes
-incdir = ../mmsp//include
+incdir = ../mmsp/include
 
 # compilers/flags
 compiler = g++
