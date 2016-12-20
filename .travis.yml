@@ -1,0 +1,26 @@
+# Mesoscale Microstructure Simulation Project
+# Travis Continuous Integration build script
+# Questions/comments to trevor.keller@gmail.com (Trevor Keller)
+
+language: cpp
+dist: trusty
+sudo: required
+
+compiler:
+  - gcc
+
+env:
+  - MPI=openmpi
+
+notifications:
+  email: false
+
+install:
+  - sudo apt-get update -qq -y
+  - sudo apt-get -y install -qq openmpi-bin libopenmpi-dev
+
+before_script:
+  - cd test
+
+script:
+  ./run_benchmarks.sh --np 2 --short
