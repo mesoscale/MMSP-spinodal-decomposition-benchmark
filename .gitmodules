@@ -1,0 +1,4 @@
+[submodule "mmsp"]
+	path = mmsp
+	url = https://github.com/mesoscale/mmsp.git
+	branch = develop
