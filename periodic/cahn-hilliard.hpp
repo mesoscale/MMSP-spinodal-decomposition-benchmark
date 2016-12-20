@@ -1,6 +1,6 @@
 // cahn-hilliard.cpp
-// Example program for the Cahn-Hilliard model using MMSP
-// Questions/comments to gruberja@gmail.com (Jason Gruber)
+// Benchmark program for the Cahn-Hilliard model using MMSP
+// Questions/comments to trevor.keller@gmail.com (Trevor Keller)
 
 std::string PROGRAM = "cahn-hilliard";
 std::string MESSAGE = "Cahn-Hilliard model using MMSP";

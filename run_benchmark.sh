@@ -2,11 +2,11 @@
 
 # run_benchmarks.sh
 # This test script compiles each benchmark problem in serial and parallel
-# then executes the program in 2D. The length of the test can be controlled
-# by selecting default (1,000 steps), long (5,000 steps), or extra long
-# (25,000 steps). The resulting checkpoints are then converted to PNG
-# images to spot check problems in the code or environment, including execution
-# errors and numerical instabilities. If you see something, say something.
+# then executes the parallel program in 2D. The length of the test can be
+# controlled by selecting default (1,000 steps), long (5,000 steps), or
+# extra long (25,000 steps). The resulting checkpoints are then converted
+# to PNG images to spot check problems in the code or environment, including
+# execution errors and numerical instabilities.
 #
 # Questions/comments to trevor.keller@gmail.com (Trevor Keller)
 

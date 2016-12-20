@@ -1,6 +1,6 @@
 // cahn-hilliard.hpp
 // Algorithms for 2D and 3D Cahn-Hilliard model
-// Questions/comments to gruberja@gmail.com (Jason Gruber)
+// Questions/comments to trevor.keller@gmail.com (Trevor Keller)
 
 #ifndef CAHNHILLIARD_UPDATE
 #define CAHNHILLIARD_UPDATE
@@ -131,4 +131,4 @@ void update(MMSP::grid<dim,T>& grid, int steps)
 } // MMSP
 #endif
 
-#include"MMSP.main.hpp"
+#include"../main.cpp"
