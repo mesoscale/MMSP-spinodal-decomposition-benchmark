@@ -14,7 +14,7 @@ const double rhoS = 5.0;
 const double M = 2.0;
 const double kappa = 2.0;
 const double CFL = 0.25;
-const double dt = std::pow(deltaX, 4)*CFL/(24.0*M*kappa);
+const double dt = std::pow(deltaX, 4)*CFL/(32.0*M*kappa);
 
 double chemenergy(const double& C)
 {
@@ -29,7 +29,7 @@ double dfdc(const double& C)
 	// d(chemenergy)/dc
 	const double A = C-Ca;
 	const double B = Cb-C;
-	return 2.0 * rhoS * A * B * (Cb - Ca);
+	return 2.0 * rhoS * A * B * (Ca + Cb - 2.0 * C);
 }
 
 double cheminit(const double& x, const double& y)
