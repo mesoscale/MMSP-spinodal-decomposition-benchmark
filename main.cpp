@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
 			for (int i = iterations_start; i < steps; i += increment) {
 				MMSP::update(grid, increment);
 
-				t = t + dt*increment;
+				t += dt * increment;
 				double F = Helmholtz(grid);
 
 				simtimes.push_back(t);

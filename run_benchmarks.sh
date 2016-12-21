@@ -36,8 +36,8 @@ nParRun=0
 MFLAG="-s"
 
 # Set execution parameters
-ITERS=1000
-INTER=500
+ITERS=10000
+INTER=10000
 CORES=4
 COREMAX=$(nproc)
 if [[ $CORES -gt $COREMAX ]]
@@ -76,15 +76,15 @@ do
 		;;
 		--short)
 			ITERS=$(($ITERS/10))
-			INTER=100
+			INTER=$ITERS
 		;;
 		--long)
-			ITERS=$((5*$ITERS))
-			INTER=1000
+			ITERS=$((10*$ITERS))
+			INTER=$(($ITERS/10))
 		;;
 		--extra)
-			ITERS=$((25*$ITERS))
-			INTER=5000
+			ITERS=$((100*$ITERS))
+			INTER=$(($ITERS/100))
 		;;
 		--noviz)
 			echo -n ", no PNG output"
@@ -127,7 +127,7 @@ echo "--------------------------------------------------------------------------
 rm -rf results.yml error.log
 mmspversion=$(git submodule status | awk '{print $1}')
 installedmem=$(free -m | grep Mem | awk '{print $2}')
-processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/Processor/' | sed 's/(R)//g')
+processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/Processor/' | sed 's/(R)//g' | sed 's/(tm)//g')
 
 n=${#exdirs[@]}
 for (( i=0; i<$n; i++ ))

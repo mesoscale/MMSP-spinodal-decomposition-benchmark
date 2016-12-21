@@ -13,7 +13,7 @@ namespace MMSP {
 
 bool isOutside(const vector<int>& x)
 {
-	if ((x[1]<100) && ((x[0]<40) || (x[0]>59)))
+	if ((x[1]<100) && ((x[0]<0) || (x[0]>19)))
 		return true;
 	return false;
 }
@@ -49,12 +49,14 @@ vector<T> zfGradient(const grid<dim,T>& GRID, const vector<int>& x)
 		s[i] += 1;
 		if (isOutside(s)) {
 			gradient[i] = 0.0;
+			s[i] -= 1;
 			continue;
 		}
 		const T& yh = GRID(s);
 		s[i] -= 2;
 		if (isOutside(s)) {
 			gradient[i] = 0.0;
+			s[i] += 1;
 			continue;
 		}
 		const T& yl = GRID(s);
@@ -118,7 +120,7 @@ void generate(int dim, const char* filename)
 		for (int n=0; n<nodes(initGrid); n++) {
 			vector<int> x = position(initGrid, n);
 			if (isOutside(x))
-				initGrid(x) = 0.0;
+				initGrid(x) = C0;
 			else
 				initGrid(n) = cheminit(dx(initGrid,0)*x[0], dx(initGrid,1)*x[1]);
 		}
@@ -185,7 +187,7 @@ void update(grid<dim,T>& oldGrid, int steps)
 		for (int n=0; n<nodes(oldGrid); n++) {
 			vector<int> x = position(oldGrid,n);
 			if (isOutside(x)) {
-				newGrid(x) = 0.0;
+				newGrid(x) = C0;
 			} else {
 				newGrid(n) = oldGrid(n) + dt*M*zfLaplacian(lapGrid,x);
 			}
