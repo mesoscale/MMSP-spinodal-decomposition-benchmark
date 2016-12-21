@@ -18,8 +18,5 @@ cahn-hilliard: cahn-hilliard.cpp
 parallel: cahn-hilliard.cpp
 	$(pcompiler) $(pflags) $< -o $@ -lz
 
-debug: cahn-hilliard.cpp
-	g++ -g -Wall -I $(incdir) $< -o $@ -lz
-
 clean:
 	rm -f cahn-hilliard parallel

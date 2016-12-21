@@ -1,7 +1,6 @@
 # Executables
 */cahn-hilliard
 */parallel
-*/debug
 
 # Outputs
 *.dat
