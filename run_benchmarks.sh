@@ -38,6 +38,7 @@ MFLAG="-s"
 # Set execution parameters
 ITERS=10000
 INTER=10000
+REPEAT=1
 CORES=4
 COREMAX=$(nproc)
 if [[ $CORES -gt $COREMAX ]]
@@ -93,6 +94,10 @@ do
 		--np)
 			shift
 			CORES=$1
+		;;
+		--repeat)
+			shift
+			REPEAT=$1
 		;;
 		*)
 			echo "WARNING: Unknown option ${key}."
@@ -152,6 +157,7 @@ do
 	echo "Problem 1${exlabels[$i]}:" >>$problems/results.yml
 	echo "    Repository: https://github.com/mesoscale/spinodal-decomposition-benchmark/tree/master/${exdirs[$i]}" >>$problems/results.yml
 	echo "    Start: $(date -R)" >>$problems/results.yml
+	echo "    Cores: ${CORES}" >>$problems/results.yml
 
 	j=$(($i+1))
 	printf "%s %-60s\t" ${exlabels[$i]} ${exdirs[$i]}
@@ -171,11 +177,14 @@ do
 	if [[ -f parallel ]] && [[ ! $NEXEC ]]
 	then
 		# Run the example in parallel, for speed.
-		runstart=$(date +%s)
-		/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>$problems/results.yml 2>>error.log && \
-		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>$problems/results.yml 2>>error.log
-		runstop=$(date +%s)
-		runlapse=$(echo "$runstop-$runstart" | bc -l)
+		for r in `seq 1 ${REPEAT}`;
+		do
+			echo "    Trial ${r}:" >>$problems/results.yml
+			rm -f test.*.dat
+			(/usr/bin/time -f '        Real time: %e\n        User time: %U\n        Sys time: %S\n        Memory: %M' bash -c \
+			"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>$problems/results.yml 2>>error.log && \
+			/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>$problems/results.yml 2>>error.log") &>>$problems/results.yml
+		done
 		# Return codes are not reliable. Save errors to disk for postmortem.
 		if [[ -f error.log ]] && [[ $(wc -w error.log) > 1 ]]
 		then
@@ -200,7 +209,6 @@ do
 			exfin=$(date +%s)
 			exlapse=$(echo "$exfin-$exstart" | bc -l)
 			printf "${GRN}%3d seconds${WHT}\n" $exlapse
-			echo "    Runtime: ${runlapse}" >>$problems/results.yml
 		fi
 	else
 		exfin=$(date +%s)

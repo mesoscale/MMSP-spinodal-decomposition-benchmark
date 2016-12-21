@@ -50,10 +50,8 @@ int main(int argc, char* argv[]) {
 	// Many of the example programs call rand(). srand() must be called
 	// _exactly once_, making this the proper place for it.
 	int rank = 0;
-	int np = 0;
 	#ifdef MPI_VERSION
 	rank = MPI::COMM_WORLD.Get_rank();
-	np = MPI::COMM_WORLD.Get_size();
 	#endif
 	srand(time(NULL)+rank);
 
@@ -347,17 +345,15 @@ int main(int argc, char* argv[]) {
 				MMSP::output(grid, filename);
 			}
 			if (rank==0) {
-			    std::cout<<"    Cores: "<<np<<'\n';
-				std::cout<<"    Times: ["<<simtimes[0];
-				for (unsigned int i=1; i<simtimes.size(); i++)
-					printf(", %.6g",simtimes[i]);
-				std::cout<<"]\n    Energies: ["<<energies[0];
-				for (unsigned int i=1; i<energies.size(); i++)
-					printf(", %.6g",energies[i]);
-				std::cout<<"]\n    Rates (dF/dt/V): ["<<nrgrates[0];
-				for (unsigned int i=1; i<nrgrates.size(); i++)
-					printf(", %.6g",nrgrates[i]);
-				std::cout<<"]\n";
+				std::cout<<"        Times:\n";
+				for (unsigned int i=0; i<simtimes.size(); i++)
+					printf("            - %.6g\n",simtimes[i]);
+				std::cout<<"        Energies:\n";
+				for (unsigned int i=0; i<energies.size(); i++)
+					printf("            - %.6g\n",energies[i]);
+				std::cout<<"        Rates (dF/dt/V):\n";
+				for (unsigned int i=0; i<nrgrates.size(); i++)
+					printf("            - %.6g\n",nrgrates[i]);
 			}
 		} else if (dim == 3) {
 			// construct grid object

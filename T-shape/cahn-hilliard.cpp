@@ -120,12 +120,12 @@ void generate(int dim, const char* filename)
 		output(initGrid,filename);
 
 		if (rank==0) {
-			std::cout<<"    Grid geometry: T-shaped\n"
-			         <<"    Grid origin: ["<<g0(initGrid,0)<<", "<<g0(initGrid,1)<<"]\n"
-			         <<"    Grid size: ["<<g1(initGrid,0)-g0(initGrid,0)<<", "<<g1(initGrid,1)-g0(initGrid,1)<<"]\n"
-			         <<"    Boundary condition: no-flux\n"
-			         <<"    Discretization: forward time centered space (explicit Euler)\n"
-			         <<"    Timestep: "<<dt<<'\n';
+			std::cout<<"        Grid geometry: T-shaped\n"
+			         <<"        Grid origin: ["<<g0(initGrid,0)<<", "<<g0(initGrid,1)<<"]\n"
+			         <<"        Grid size: ["<<g1(initGrid,0)-g0(initGrid,0)<<", "<<g1(initGrid,1)-g0(initGrid,1)<<"]\n"
+			         <<"        Boundary condition: no-flux\n"
+			         <<"        Discretization: forward time centered space (explicit Euler)\n"
+			         <<"        Timestep: "<<dt<<'\n';
 		}
 
 	}
