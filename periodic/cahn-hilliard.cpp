@@ -59,6 +59,7 @@ void generate(int dim, const char* filename)
 			initGrid(n) = cheminit(dx(initGrid,0)*x[0], dx(initGrid,1)*x[1]);
 		}
 
+		ghostswap(initGrid);
 		output(initGrid,filename);
 
 		if (rank==0) {
@@ -102,6 +103,7 @@ void update(grid<dim,T>& oldGrid, int steps)
 
 		swap(oldGrid,newGrid);
 	}
+	ghostswap(oldGrid);
 }
 
 } // MMSP

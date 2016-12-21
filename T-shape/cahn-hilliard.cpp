@@ -28,9 +28,9 @@ T zfLaplacian(const grid<dim,T>& GRID, const vector<int>& x)
 
 	for (int i=0; i<dim; i++) {
 		s[i] += 1;
-		const T& yh = (isOutside(s))?y:GRID(s);
+		const T& yh = isOutside(s) ? y : GRID(s);
 		s[i] -= 2;
-		const T& yl = (isOutside(s))?y:GRID(s);
+		const T& yl = isOutside(s) ? y : GRID(s);
 		s[i] += 1;
 
 		double weight = 1.0 / (dx(GRID, i) * dx(GRID, i));
@@ -44,25 +44,16 @@ vector<T> zfGradient(const grid<dim,T>& GRID, const vector<int>& x)
 {
 	vector<T> gradient(dim, 0.0);
 	vector<int> s = x;
+	const T& y = GRID(x);
 
 	for (int i=0; i<dim; i++) {
 		s[i] += 1;
-		if (isOutside(s)) {
-			gradient[i] = 0.0;
-			s[i] -= 1;
-			continue;
-		}
-		const T& yh = GRID(s);
+		const T& yh = isOutside(s) ? y : GRID(s);
 		s[i] -= 2;
-		if (isOutside(s)) {
-			gradient[i] = 0.0;
-			s[i] += 1;
-			continue;
-		}
-		const T& yl = GRID(s);
+		const T& yl = isOutside(s) ? y : GRID(s);
 		s[i] += 1;
 
-		double weight = 1.0 / dx(GRID, i);
+		double weight = 1.0 / (2.0 * dx(GRID, i));
 		gradient[i] = weight * (yh - yl);
 	}
 	return gradient;
@@ -125,6 +116,7 @@ void generate(int dim, const char* filename)
 				initGrid(n) = cheminit(dx(initGrid,0)*x[0], dx(initGrid,1)*x[1]);
 		}
 
+		ghostswap(initGrid);
 		output(initGrid,filename);
 
 		if (rank==0) {
@@ -194,6 +186,7 @@ void update(grid<dim,T>& oldGrid, int steps)
 		}
 		swap(oldGrid,newGrid);
 	}
+	ghostswap(oldGrid);
 }
 
 } // MMSP

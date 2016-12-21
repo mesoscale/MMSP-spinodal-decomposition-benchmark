@@ -64,10 +64,9 @@ void generate(int dim, const char* filename)
 			initGrid(n) = cheminit(dx(initGrid,0)*x[0], dx(initGrid,1)*x[1]);
 		}
 
-		#ifdef MPI_VERSION
-		MPI::COMM_WORLD.Barrier();
-		#endif
+		ghostswap(initGrid);
 		output(initGrid,filename);
+
 		if (rank==0) {
 			std::cout<<"    Grid geometry: square\n"
 			         <<"    Grid origin: ["<<g0(initGrid,0)<<", "<<g0(initGrid,1)<<"]\n"
@@ -127,6 +126,7 @@ void update(grid<dim,T>& oldGrid, int steps)
 		}
 		swap(oldGrid,newGrid);
 	}
+	ghostswap(oldGrid);
 }
 
 } // MMSP
