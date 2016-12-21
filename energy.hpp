@@ -9,6 +9,7 @@
 const double deltaX = 1.0;
 const double Ca = 0.3;
 const double Cb = 0.7;
+const double C0 = 0.5;
 const double rhoS = 5.0;
 const double M = 2.0;
 const double kappa = 2.0;
@@ -34,7 +35,6 @@ double dfdc(const double& C)
 double cheminit(const double& x, const double& y)
 {
 	// Equation 12
-	const double C0 = 0.5;
 	const double epsilon = 0.01;
 	return C0 + epsilon * ( std::cos(0.105*x)          * std::cos(0.11*y)
 	                      + std::pow(std::cos(0.13*x)  * std::cos(0.087*y), 2.0)
