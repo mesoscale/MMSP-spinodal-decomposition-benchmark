@@ -127,7 +127,7 @@ echo "--------------------------------------------------------------------------
 rm -rf results.yml error.log
 mmspversion=$(git submodule status | awk '{print $1}')
 installedmem=$(free -m | grep Mem | awk '{print $2}')
-processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/    Processor/' | sed 's/(R)//g')
+processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/Processor/' | sed 's/(R)//g')
 
 n=${#exdirs[@]}
 for (( i=0; i<$n; i++ ))
@@ -146,7 +146,7 @@ do
 	echo "    Version: develop" >>$problems/results.yml
 	echo "    Commit: ${mmspversion}" >>$problems/results.yml
 	echo "Hardware:" >>$problems/results.yml
-	echo ${processor} >>$problems/results.yml
+	echo "    ${processor}" >>$problems/results.yml
 	echo "    Cores: ${COREMAX}" >>$problems/results.yml
 	echo "    Memory: ${installedmem}" >>$problems/results.yml
 	echo "Problem 1${exlabels[$i]}:" >>$problems/results.yml
