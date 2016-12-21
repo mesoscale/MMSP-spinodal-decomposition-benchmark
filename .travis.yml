@@ -1,5 +1,6 @@
 # Mesoscale Microstructure Simulation Project
 # Travis Continuous Integration build script
+# for Spinodal Decomposition benchmark problems
 # Questions/comments to trevor.keller@gmail.com (Trevor Keller)
 
 language: cpp
@@ -7,23 +8,27 @@ dist: trusty
 sudo: required
 
 compiler:
-  - gcc
+    - gcc
 
 env:
-  - MPI=openmpi
+    - MPI=openmpi
 
 notifications:
-  email: false
+    email: false
+
+before_install:
+    - git submodule update --init --recursive
 
 install:
-  - sudo apt-get update -qq -y
-  - sudo apt-get -y install -qq openmpi-bin libopenmpi-dev
+    - sudo apt-get update -qq -y
+    - sudo apt-get -y install -qq openmpi-bin libopenmpi-dev
+
+before_script:
+    - ls
+
+script:
+    bash run_benchmarks.sh --np 2 --noviz
 
 after_script:
-  - ls
-
-script: bash run_benchmarks.sh --np 2 --noviz
-
-after_script:
-  - cat results.yml
+    - cat results.yml
 
