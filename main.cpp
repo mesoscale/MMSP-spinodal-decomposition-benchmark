@@ -301,8 +301,11 @@ int main(int argc, char* argv[]) {
 			// construct grid object
 			GRID2D grid(argv[1]);
 
+			double invV = 1.0 / (deltaX * deltaX * (g1(grid,0)-g0(grid,0)) * (g1(grid,1)-g0(grid,1)));
+
 			std::vector<double> energies;
 			std::vector<double> simtimes;
+			std::vector<double> nrgrates;
 
 			double t = dt * iterations_start;
 
@@ -310,17 +313,19 @@ int main(int argc, char* argv[]) {
 				double F = Helmholtz(grid);
 				simtimes.push_back(t);
 				energies.push_back(F);
+				nrgrates.push_back(0);
 			}
 
 			// perform computation
 			for (int i = iterations_start; i < steps; i += increment) {
-				MMSP::update(grid, increment);
+				double oldF = MMSP::update(grid, increment);
 
 				t += dt * increment;
 				double F = Helmholtz(grid);
 
 				simtimes.push_back(t);
 				energies.push_back(F);
+				nrgrates.push_back(invV * (F - oldF));
 
 
 				// generate output filename
@@ -349,6 +354,9 @@ int main(int argc, char* argv[]) {
 				std::cout<<"]\n    Energies: ["<<energies[0];
 				for (unsigned int i=1; i<energies.size(); i++)
 					printf(", %.6g",energies[i]);
+				std::cout<<"]\n    Rates (dF/dt/V): ["<<nrgrates[0];
+				for (unsigned int i=1; i<nrgrates.size(); i++)
+					printf(", %.6g",nrgrates[i]);
 				std::cout<<"]\n";
 			}
 		} else if (dim == 3) {

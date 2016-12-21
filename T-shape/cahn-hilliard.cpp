@@ -120,7 +120,7 @@ void generate(int dim, const char* filename)
 		output(initGrid,filename);
 
 		if (rank==0) {
-			std::cout<<"    Grid geometry: T\n"
+			std::cout<<"    Grid geometry: T-shaped\n"
 			         <<"    Grid origin: ["<<g0(initGrid,0)<<", "<<g0(initGrid,1)<<"]\n"
 			         <<"    Grid size: ["<<g1(initGrid,0)-g0(initGrid,0)<<", "<<g1(initGrid,1)-g0(initGrid,1)<<"]\n"
 			         <<"    Boundary condition: no-flux\n"
@@ -132,7 +132,7 @@ void generate(int dim, const char* filename)
 }
 
 template <int dim, typename T>
-void update(grid<dim,T>& oldGrid, int steps)
+double update(grid<dim,T>& oldGrid, int steps)
 {
 	// Make sure the grid spacing is correct
 	for (int d=0; d<dim; d++) {
@@ -187,6 +187,7 @@ void update(grid<dim,T>& oldGrid, int steps)
 		swap(oldGrid,newGrid);
 	}
 	ghostswap(oldGrid);
+	return Helmholtz(newGrid);
 }
 
 } // MMSP
