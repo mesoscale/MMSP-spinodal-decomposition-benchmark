@@ -11,6 +11,32 @@
 
 namespace MMSP {
 
+template <int dim,typename T>
+double Helmholtz(const grid<dim,T>& GRID)
+{
+	double dV = 1.0;
+	for (int d=0; d<dim; d++)
+		dV *= dx(GRID, d);
+
+	double f = 0.0;
+	double g = 0.0;
+
+	for (int n=0; n<nodes(GRID); n++) {
+		vector<int> x = position(GRID, n);
+		vector<double> gradc = gradient(GRID, x);
+		f += chemenergy(GRID(n));
+		g += gradc*gradc;
+	}
+
+	double F = dV*(f + 0.5*kappa*g);
+	#ifdef MPI_VERSION
+	double myF(F);
+	MPI::COMM_WORLD.Allreduce(&myF, &F, 1, MPI_DOUBLE, MPI_SUM);
+	#endif
+	return F;
+}
+
+
 void generate(int dim, const char* filename)
 {
 	if (dim!=2) {
@@ -23,84 +49,59 @@ void generate(int dim, const char* filename)
 	rank = MPI::COMM_WORLD.Get_rank();
 	#endif
 
-    const double q[2] = {0.1*std::sqrt(2.0), 0.1*std::sqrt(3.0)};
-
 	if (dim==2) {
-		MMSP::grid<2,double> grid(1,0,200,0,200);
+		GRID2D initGrid(1,0,200,0,200);
 		for (int d=0; d<dim; d++)
-			dx(grid,d) = deltaX;
+			dx(initGrid,d) = deltaX;
 
-		for (int i=0; i<nodes(grid); i++) {
-			MMSP::vector<int> x = position(grid,i);
-			grid(x) = 0.45 + 0.01 * std::cos(x[0]*dx(grid,0)*q[0] + x[1]*dx(grid,1)*q[1]);
+		for (int n=0; n<nodes(initGrid); n++) {
+			vector<int> x = position(initGrid, n);
+			initGrid(n) = cheminit(dx(initGrid,0)*x[0], dx(initGrid,1)*x[1]);
 		}
 
-		#ifdef MPI_VERSION
-		MPI::COMM_WORLD.Barrier();
-		#endif
-		output(grid,filename);
-		if (rank==0)
-			std::cout<<"Timestep is "<<dt<<" (Co="<<CFL<<')'<<std::endl;
+		output(initGrid,filename);
+
+		if (rank==0) {
+			std::cout<<"    Grid geometry: square\n"
+			         <<"    Grid origin: ["<<g0(initGrid,0)<<", "<<g0(initGrid,1)<<"]\n"
+			         <<"    Grid size: ["<<g1(initGrid,0)-g0(initGrid,0)<<", "<<g1(initGrid,1)-g0(initGrid,1)<<"]\n"
+			         <<"    Boundary condition: periodic\n"
+			         <<"    Discretization: forward time centered space (explicit Euler)\n"
+			         <<"    Timestep: "<<dt<<'\n';
+		}
 	}
 }
 
 template <int dim, typename T>
-void update(MMSP::grid<dim,T>& grid, int steps)
+void update(grid<dim,T>& oldGrid, int steps)
 {
-	int rank=0;
-	#ifdef MPI_VERSION
-	rank = MPI::COMM_WORLD.Get_rank();
-	#endif
-
-    ghostswap(grid);
-
-	MMSP::grid<dim,T> update(grid);
-	MMSP::grid<dim,T> temp(grid);
+	grid<dim,T> newGrid(oldGrid);
+	grid<dim,T> lapGrid(oldGrid);
 	// Make sure the grid spacing is correct
 	for (int d=0; d<dim; d++) {
-		dx(grid,d) = deltaX;
-		dx(update,d) = deltaX;
-		dx(temp,d) = deltaX;
+		dx(oldGrid,d) = deltaX;
+		dx(newGrid,d) = deltaX;
+		dx(lapGrid,d) = deltaX;
 	}
 
 	for (int step=0; step<steps; step++) {
-		for (int i=0; i<nodes(grid); i++) {
-			MMSP::vector<int> x = position(grid,i);
-			double c = grid(x);
-			temp(x) = dfdc(c) - K*laplacian(grid,x);
-		}
-		#ifdef MPI_VERSION
-		MPI::COMM_WORLD.Barrier();
-		#endif
-		ghostswap(temp);
+		ghostswap(oldGrid);
 
-		double energy = 0.0;
-		double mass = 0.0;
-		for (int i=0; i<nodes(grid); i++) {
-			MMSP::vector<int> x = position(grid,i);
-			update(x) = grid(x) + dt*D*laplacian(temp,x);
-			energy += dx(grid)*dy(grid)*energydensity(update(x));
-			mass += dx(grid)*dy(grid)*update(x);
+		for (int n=0; n<nodes(oldGrid); n++) {
+			vector<int> x = position(oldGrid, n);
+			const T& c = oldGrid(n);
+			lapGrid(n) = dfdc(c) - kappa*laplacian(oldGrid, x);
 		}
-		#ifdef MPI_VERSION
-		MPI::COMM_WORLD.Barrier();
-		double myEnergy = energy;
-		double myMass = mass;
-		MPI::COMM_WORLD.Reduce(&myEnergy, &energy, 1, MPI_DOUBLE, MPI_SUM, 0);
-		MPI::COMM_WORLD.Reduce(&myMass, &mass, 1, MPI_DOUBLE, MPI_SUM, 0);
-		#endif
-		#ifndef DEBUG
-		if (rank==0)
-			std::cout<<energy<<'\t'<<mass<<'\n';
-		#endif
 
-		swap(grid,update);
-		ghostswap(grid);
+		ghostswap(lapGrid);
+
+		for (int n=0; n<nodes(oldGrid); n++) {
+			vector<int> x = position(oldGrid, n);
+			newGrid(n) = oldGrid(n) + dt*M*laplacian(lapGrid, x);
+		}
+
+		swap(oldGrid,newGrid);
 	}
-	#ifndef DEBUG
-	if (rank==0)
-		std::cout<<std::flush;
-	#endif
 }
 
 } // MMSP

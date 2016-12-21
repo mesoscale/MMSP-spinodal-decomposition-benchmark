@@ -7,24 +7,39 @@
 #include<cmath>
 
 const double deltaX = 1.0;
-const double Ca = 0.05;
-const double Cb = 0.95;
-const double Cm = 0.5*(Ca + Cb);
-const double A = 2.0;
-const double B = A/((Ca-Cm)*(Ca-Cm));
-const double D = 2.0/(Cb-Ca);
-const double K = 2.0;
+const double Ca = 0.3;
+const double Cb = 0.7;
+const double rhoS = 5.0;
+const double M = 2.0;
+const double kappa = 2.0;
 const double CFL = 0.25;
-const double dt = std::pow(deltaX, 4)*CFL/(32.0*D*K);
+const double dt = std::pow(deltaX, 4)*CFL/(32.0*M*kappa);
 
-double energydensity(const double& C)
+double chemenergy(const double& C)
 {
-	return -0.5*A*pow(C-Cm,2) + 0.25*B*pow(C-Cm,4) + 0.25*Ca*pow(C-Ca,4) + 0.25*Cb*pow(C-Cb,4);
+	// Equation 2
+	const double A = C-Ca;
+	const double B = Cb-C;
+	return rhoS * A*A * B*B;
 }
 
 double dfdc(const double& C)
 {
-    return -A*(C-Cm) + B*pow(C-Cm, 3) + Ca*pow(C-Ca, 3) + Cb*pow(C-Cb, 3);
+	// d(chemenergy)/dc
+	const double A = C-Ca;
+	const double B = Cb-C;
+	return 2.0 * rhoS * A * B * (Cb - Ca);
+}
+
+double cheminit(const double& x, const double& y)
+{
+	// Equation 12
+	const double C0 = 0.5;
+	const double epsilon = 0.01;
+	return C0 + epsilon * ( std::cos(0.105*x)          * std::cos(0.11*y)
+	                      + std::pow(std::cos(0.13*x)  * std::cos(0.087*y), 2.0)
+	                      + std::cos(0.025*x - 0.15*y) * std::cos(0.07*x - 0.02*y)
+                          );
 }
 
 #endif

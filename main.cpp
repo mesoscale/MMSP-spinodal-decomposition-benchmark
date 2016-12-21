@@ -33,6 +33,7 @@
 #include<sstream>
 #include<cstdlib>
 #include<cctype>
+#include<vector>
 #include<time.h>
 
 int main(int argc, char* argv[]) {
@@ -49,8 +50,10 @@ int main(int argc, char* argv[]) {
 	// Many of the example programs call rand(). srand() must be called
 	// _exactly once_, making this the proper place for it.
 	int rank = 0;
+	int np = 0;
 	#ifdef MPI_VERSION
 	rank = MPI::COMM_WORLD.Get_rank();
+	np = MPI::COMM_WORLD.Get_size();
 	#endif
 	srand(time(NULL)+rank);
 
@@ -298,9 +301,27 @@ int main(int argc, char* argv[]) {
 			// construct grid object
 			GRID2D grid(argv[1]);
 
+			std::vector<double> energies;
+			std::vector<double> simtimes;
+
+			double t = dt * iterations_start;
+
+			if (iterations_start==0) {
+				double F = Helmholtz(grid);
+				simtimes.push_back(t);
+				energies.push_back(F);
+			}
+
 			// perform computation
 			for (int i = iterations_start; i < steps; i += increment) {
 				MMSP::update(grid, increment);
+
+				t = t + dt*increment;
+				double F = Helmholtz(grid);
+
+				simtimes.push_back(t);
+				energies.push_back(F);
+
 
 				// generate output filename
 				std::stringstream outstr;
@@ -319,6 +340,16 @@ int main(int argc, char* argv[]) {
 
 				// write grid output to file
 				MMSP::output(grid, filename);
+			}
+			if (rank==0) {
+			    std::cout<<"    Cores: "<<np<<'\n';
+				std::cout<<"    Times: ["<<simtimes[0];
+				for (unsigned int i=1; i<simtimes.size(); i++)
+					printf(", %.6g",simtimes[i]);
+				std::cout<<"]\n    Energies: ["<<energies[0];
+				for (unsigned int i=1; i<energies.size(); i++)
+					printf(", %.6g",energies[i]);
+				std::cout<<"]\n";
 			}
 		} else if (dim == 3) {
 			// construct grid object

@@ -8,19 +8,14 @@ incdir = ../mmsp/include
 # compilers/flags
 compiler = g++
 flags = -O3 -Wall -I $(incdir)
-pcompiler = mpic++
+pcompiler = /usr/bin/mpic++.openmpi
 pflags = -O3 -Wall -I $(incdir) -include mpi.h
 
-# dependencies
-core = ../main.cpp \
-       $(incdir)/MMSP.utility.hpp \
-       $(incdir)/MMSP.grid.hpp
-
 # the program
-cahn-hilliard: cahn-hilliard.cpp $(core)
+cahn-hilliard: cahn-hilliard.cpp
 	$(compiler) $(flags) $< -o $@ -lz
 
-parallel: cahn-hilliard.cpp $(core)
+parallel: cahn-hilliard.cpp
 	$(pcompiler) $(pflags) $< -o $@ -lz
 
 clean:

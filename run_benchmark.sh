@@ -47,11 +47,14 @@ fi
 
 problems=$(pwd)
 
-
 # Define the directories to execute, in order. Formatting matters.
 exdirs=("periodic/" \
 "no-flux/" \
 "T-shape/")
+
+exlabels=("a" \
+"b" \
+"c")
 
 echo -n "Building problems in serial and parallel"
 
@@ -121,13 +124,38 @@ fi
 
 echo "---------------------------------------------------------------------------"
 
+rm -rf results.yml error.log
+mmspversion=$(git submodule status | awk '{print $1}')
+installedmem=$(free -m | grep Mem | awk '{print $2}')
+processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/    Processor/' | sed 's/(R)//g')
+
 n=${#exdirs[@]}
 for (( i=0; i<$n; i++ ))
 do
 	exstart=$(date +%s)
+
+	# Write simulation particulars. Should work on any Debian-flavored GNU/Linux OS.
+	echo "---" >>$problems/results.yml
+	echo "Benchmark: Spinodal Decomposition" >>$problems/results.yml
+	echo "User:" >>$problems/results.yml
+	echo "    Name: Trevor Keller" >>$problems/results.yml
+	echo "    Affiliation: NIST" >>$problems/results.yml
+	echo "Software:" >>$problems/results.yml
+	echo "    Name: Mesoscale Microstructure Simulation Project (MMSP)" >>$problems/results.yml
+	echo "    Repository: https://github.com/mesoscale/mmsp" >>$problems/results.yml
+	echo "    Version: develop" >>$problems/results.yml
+	echo "    Commit: ${mmspversion}" >>$problems/results.yml
+	echo "Hardware:" >>$problems/results.yml
+	echo ${processor} >>$problems/results.yml
+	echo "    Cores: ${COREMAX}" >>$problems/results.yml
+	echo "    Memory: ${installedmem}" >>$problems/results.yml
+	echo "Problem 1${exlabels[$i]}:" >>$problems/results.yml
+	echo "    Repository: https://github.com/mesoscale/spinodal-decomposition-benchmark/tree/master/${exdirs[$i]}" >>$problems/results.yml
+	echo "    Start: $(date -R)" >>$problems/results.yml
+
 	j=$(($i+1))
+	printf "%s %-60s\t" ${exlabels[$i]} ${exdirs[$i]}
 	cd $problems/${exdirs[$i]}
-	printf "%1d/%1d %-52s\t" $j $n ${exdirs[$i]}
 	if make $MFLAG
 	then
 		((nSerBld++))
@@ -143,8 +171,11 @@ do
 	if [[ -f parallel ]] && [[ ! $NEXEC ]]
 	then
 		# Run the example in parallel, for speed.
-		mpirun -np $CORES ./parallel --example 2 test.0000.dat 1>results.log 2>error.log \
-		&& mpirun -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>results.log 2>>error.log
+		runstart=$(date +%s)
+		/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>$problems/results.yml 2>>error.log && \
+		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>$problems/results.yml 2>>error.log
+		runstop=$(date +%s)
+		runlapse=$(echo "$runstop-$runstart" | bc -l)
 		# Return codes are not reliable. Save errors to disk for postmortem.
 		if [[ -f error.log ]] && [[ $(wc -w error.log) > 1 ]]
 		then
@@ -163,12 +194,13 @@ do
 				# Show the result
 				for f in *.dat
 				do
-					mmsp2png --zoom $f >>results.log
+					mmsp2png --zoom $f 1>/dev/null 2>>error.log
 				done
 			fi
 			exfin=$(date +%s)
 			exlapse=$(echo "$exfin-$exstart" | bc -l)
 			printf "${GRN}%3d seconds${WHT}\n" $exlapse
+			echo "    Runtime: ${runlapse}" >>$problems/results.yml
 		fi
 	else
 		exfin=$(date +%s)
@@ -180,7 +212,6 @@ do
 	then
 		make -s clean
 		rm -f test.*.dat
-		rm -f results.log
 		rm -f error.log
 		rm -f test.*.png
 	fi

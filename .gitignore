@@ -1,9 +1,11 @@
 # Executables
 */cahn-hilliard
 */parallel
+*/debug
 
 # Outputs
 *.dat
 *.log
 *.out
 *.png
+.directory
