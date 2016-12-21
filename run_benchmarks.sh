@@ -127,12 +127,17 @@ then
 	fi
 fi
 
-echo "---------------------------------------------------------------------------"
+echo "--------------------------------------------------------------------------"
 
 rm -rf results.yml error.log
 mmspversion=$(git submodule status | awk '{print $1}')
 installedmem=$(free -m | grep Mem | awk '{print $2}')
 processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/Processor/' | sed 's/(R)//g' | sed 's/(tm)//g')
+sumspace=32
+if [[ ! $NEXEC ]]
+then
+	sumspace=$((${sumspace}-${REPEAT}))
+fi
 
 n=${#exdirs[@]}
 for (( i=0; i<$n; i++ ))
@@ -160,7 +165,7 @@ do
 	echo "    Cores: ${CORES}" >>$problems/results.yml
 
 	j=$(($i+1))
-	printf "%s %-60s\t" ${exlabels[$i]} ${exdirs[$i]}
+	printf "%s %-${sumspace}s" ${exlabels[$i]} ${exdirs[$i]}
 	cd $problems/${exdirs[$i]}
 	if make $MFLAG
 	then
@@ -184,10 +189,15 @@ do
 			(/usr/bin/time -f '        Real time: %e\n        User time: %U\n        Sys time: %S\n        Memory: %M' bash -c \
 			"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>$problems/results.yml 2>>error.log && \
 			/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>$problems/results.yml 2>>error.log") &>>$problems/results.yml
+			echo -n "${r} "
 		done
 		# Return codes are not reliable. Save errors to disk for postmortem.
 		if [[ -f error.log ]] && [[ $(wc -w error.log) > 1 ]]
 		then
+			for i in `seq 1 ${sumspace}`;
+			do
+				echo -n " "
+			done
 			echo -e "${RED} --FAILED--${WHT}"
 			((nRunErr++))
 			if [[ -f error.log ]]
@@ -208,12 +218,12 @@ do
 			fi
 			exfin=$(date +%s)
 			exlapse=$(echo "$exfin-$exstart" | bc -l)
-			printf "${GRN}%3d seconds${WHT}\n" $exlapse
+			printf "${GRN}%${sumspace}d seconds${WHT}\n" $exlapse
 		fi
 	else
 		exfin=$(date +%s)
 		exlapse=$(echo "$exfin-$exstart" | bc -l)
-		printf "${GRN}%3d seconds${WHT}\n" $exlapse
+		printf "${GRN}%${sumspace}d seconds${WHT}\n" $exlapse
 	fi
 	# Clean up binaries and images
 	if [[ $CLEAN ]]
@@ -229,8 +239,8 @@ cd ${problems}
 
 tfinish=$(date +%s)
 elapsed=$(echo "$tfinish-$tstart" | bc -l)
-echo "---------------------------------------------------------------------------"
-printf "Elapsed time: %53d seconds\n" $elapsed
+echo "--------------------------------------------------------------------------"
+printf "Elapsed time: %52d seconds\n" $elapsed
 echo
 printf "%2d serial   problems compiled successfully" $nSerBld
 if [[ $nSerErr > 0 ]]
