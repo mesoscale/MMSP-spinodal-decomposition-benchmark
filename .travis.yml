@@ -19,8 +19,10 @@ install:
   - sudo apt-get update -qq -y
   - sudo apt-get -y install -qq openmpi-bin libopenmpi-dev
 
-script:
-  ./run_benchmarks.sh --np 2 --noviz
+after_script:
+  - ls
+
+script: bash run_benchmarks.sh --np 2 --noviz
 
 after_script:
   - cat results.yml
