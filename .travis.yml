@@ -19,8 +19,9 @@ install:
   - sudo apt-get update -qq -y
   - sudo apt-get -y install -qq openmpi-bin libopenmpi-dev
 
-before_script:
-  - cd test
-
 script:
-  ./run_benchmarks.sh --np 2 --short
+  ./run_benchmarks.sh --np 2 --noviz
+
+after_script:
+  - cat results.yml
+
