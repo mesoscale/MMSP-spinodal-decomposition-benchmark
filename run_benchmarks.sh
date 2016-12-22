@@ -38,7 +38,6 @@ MFLAG="-s"
 # Set execution parameters
 ITERS=10000
 INTER=10000
-REPEAT=1
 CORES=4
 COREMAX=$(nproc)
 if [[ $CORES -gt $COREMAX ]]
@@ -95,10 +94,6 @@ do
 			shift
 			CORES=$1
 		;;
-		--repeat)
-			shift
-			REPEAT=$1
-		;;
 		*)
 			echo "WARNING: Unknown option ${key}."
 			echo
@@ -129,44 +124,43 @@ fi
 
 echo "--------------------------------------------------------------------------"
 
-rm -rf results.yml error.log
-mmspversion=$(git submodule status | awk '{print $1}')
-installedmem=$(free -m | grep Mem | awk '{print $2}')
-processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/Processor/' | sed 's/(R)//g' | sed 's/(tm)//g')
+rm -rf ./*/meta.yml ./*/error.log
+codeversion=$(git submodule status | awk '{print $1}')
+repoversion=$(git rev-parse --verify HEAD)
+processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/architecture/' | sed 's/(R)//g' | sed 's/(tm)//g' | sed 's/(TM)//g' | sed 's/CPU//' | sed 's/Processor//' )
 sumspace=32
-if [[ ! $NEXEC ]]
-then
-	sumspace=$((${sumspace}-${REPEAT}))
-fi
 
 n=${#exdirs[@]}
 for (( i=0; i<$n; i++ ))
 do
 	exstart=$(date +%s)
-
-	# Write simulation particulars. Should work on any Debian-flavored GNU/Linux OS.
-	echo "---" >>$problems/results.yml
-	echo "Benchmark: Spinodal Decomposition" >>$problems/results.yml
-	echo "User:" >>$problems/results.yml
-	echo "    Name: Trevor Keller" >>$problems/results.yml
-	echo "    Affiliation: NIST" >>$problems/results.yml
-	echo "Software:" >>$problems/results.yml
-	echo "    Name: Mesoscale Microstructure Simulation Project (MMSP)" >>$problems/results.yml
-	echo "    Repository: https://github.com/mesoscale/mmsp" >>$problems/results.yml
-	echo "    Version: develop" >>$problems/results.yml
-	echo "    Commit: ${mmspversion}" >>$problems/results.yml
-	echo "Hardware:" >>$problems/results.yml
-	echo "    ${processor}" >>$problems/results.yml
-	echo "    Cores: ${COREMAX}" >>$problems/results.yml
-	echo "    Memory: ${installedmem}" >>$problems/results.yml
-	echo "Problem 1${exlabels[$i]}:" >>$problems/results.yml
-	echo "    Repository: https://github.com/mesoscale/spinodal-decomposition-benchmark/tree/master/${exdirs[$i]}" >>$problems/results.yml
-	echo "    Start: $(date -R)" >>$problems/results.yml
-	echo "    Cores: ${CORES}" >>$problems/results.yml
-
 	j=$(($i+1))
 	printf "%s %-${sumspace}s" ${exlabels[$i]} ${exdirs[$i]}
 	cd $problems/${exdirs[$i]}
+
+	# Write simulation particulars. Should work on any Debian-flavored GNU/Linux OS.
+	echo "---" >>meta.yml
+	echo "benchmark:" >>meta.yml
+	echo "  problem: 1${exlabels[$i]}" >>meta.yml
+	echo "  name: Trevor Keller" >>meta.yml
+	echo "  email: trevor.keller@nist.gov" >>meta.yml
+	echo "" >>meta.yml
+	echo "metadata:" >>meta.yml
+	echo "  description: MMSP spinodal decomposition benchmark, ${exdirs[$i]/\//} domain" >>meta.yml
+	echo "  code:" >>meta.yml
+	echo "    name: Mesoscale Microstructure Simulation Project (MMSP)" >>meta.yml
+	echo "    url: https://github.com/mesoscale/mmsp/tree/develop" >>meta.yml
+	echo "    version: ${codeversion}" >>meta.yml
+	echo "  repo:" >>meta.yml
+	echo "    name: MMSP spinodal decomposition benchmark" >>meta.yml
+	echo "    url: https://github.com/mesoscale/MMSP-spinodal-decomposition-benchmark/tree/master/${exdirs[$i]}" >>meta.yml
+	echo "    version: ${repoversion}" >>meta.yml
+	echo "  ${processor}" >>meta.yml
+	echo "  cores: ${CORES}" >>meta.yml
+	echo "  date: $(date -R)" >>meta.yml
+	echo "" >>meta.yml
+	echo "data:" >>meta.yml
+
 	if make $MFLAG
 	then
 		((nSerBld++))
@@ -182,15 +176,10 @@ do
 	if [[ -f parallel ]] && [[ ! $NEXEC ]]
 	then
 		# Run the example in parallel, for speed.
-		for r in `seq 1 ${REPEAT}`;
-		do
-			echo "    Trial ${r}:" >>$problems/results.yml
-			rm -f test.*.dat
-			(/usr/bin/time -f '        Real time: %e\n        User time: %U\n        Sys time: %S\n        Memory: %M' bash -c \
-			"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>$problems/results.yml 2>>error.log && \
-			/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>$problems/results.yml 2>>error.log") &>>$problems/results.yml
-			echo -n "${r} "
-		done
+		rm -f test.*.dat
+		(/usr/bin/time -f '  - name: run time\n    value: %e\n    unit: seconds\n  - name: memory usage\n    value: %M\n    unit: KB' bash -c \
+		"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>meta.yml 2>>error.log && \
+		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml
 		# Return codes are not reliable. Save errors to disk for postmortem.
 		if [[ -f error.log ]] && [[ $(wc -w error.log) > 1 ]]
 		then

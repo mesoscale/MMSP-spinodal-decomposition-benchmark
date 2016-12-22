@@ -68,12 +68,19 @@ void generate(int dim, const char* filename)
 		output(initGrid,filename);
 
 		if (rank==0) {
-			std::cout<<"        Grid geometry: square\n"
-			         <<"        Grid origin: ["<<g0(initGrid,0)<<", "<<g0(initGrid,1)<<"]\n"
-			         <<"        Grid size: ["<<g1(initGrid,0)-g0(initGrid,0)<<", "<<g1(initGrid,1)-g0(initGrid,1)<<"]\n"
-			         <<"        Boundary condition: no-flux\n"
-		             <<"        Discretization: forward time centered space (explicit Euler)\n"
-		             <<"        Timestep: "<<dt<<'\n';
+			std::cout<<"  - name: domain\n"
+			         <<"    geometry: square\n"
+			         <<"    origin: ["<<g0(initGrid,0)<<", "<<g0(initGrid,1)<<"]\n"
+			         <<"    size: ["<<g1(initGrid,0)-g0(initGrid,0)<<", "<<g1(initGrid,1)-g0(initGrid,1)<<"]\n"
+			         <<"    boundary_condition: no-flux\n"
+			         <<"    mesh: rectilinear\n"
+			         <<"    spacing: ["<<dx(initGrid, 0)<<", "<<dx(initGrid,1)<<"]\n";
+			std::cout<<"  - name: solver\n"
+			         <<"    type: explicit\n";
+			std::cout<<"  - name: timestep\n"
+			         <<"    type: fixed\n"
+			         <<"    value: "<<dt<<'\n'
+			         <<"    unit: 1\n";
 		}
 	}
 }

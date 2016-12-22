@@ -299,32 +299,32 @@ int main(int argc, char* argv[]) {
 			// construct grid object
 			GRID2D grid(argv[1]);
 
-			double invV = 1.0 / (deltaX * deltaX * (g1(grid,0)-g0(grid,0)) * (g1(grid,1)-g0(grid,1)));
+			double V = dx(grid,0) * dx(grid,1) * (g1(grid,0)-g0(grid,0)) * (g1(grid,1)-g0(grid,1));
 
 			std::vector<double> energies;
 			std::vector<double> simtimes;
-			std::vector<double> nrgrates;
 
 			double t = dt * iterations_start;
+
+			// Use rate (dF/dt/V) to check for equilibrium.
+			// Stop evolving when rate drops below unity.
+			double rate = 1000.0;
 
 			if (iterations_start==0) {
 				double F = Helmholtz(grid);
 				simtimes.push_back(t);
 				energies.push_back(F);
-				nrgrates.push_back(0);
 			}
 
 			// perform computation
-			for (int i = iterations_start; i < steps; i += increment) {
+			for (int i = iterations_start; i < steps && rate>1.0; i += increment) {
 				double oldF = MMSP::update(grid, increment);
+				double F = Helmholtz(grid);
+				rate = (oldF - F) / (1.0e-14 * V * dt); // -dF/dt/V
 
 				t += dt * increment;
-				double F = Helmholtz(grid);
-
 				simtimes.push_back(t);
 				energies.push_back(F);
-				nrgrates.push_back(invV * (F - oldF));
-
 
 				// generate output filename
 				std::stringstream outstr;
@@ -345,15 +345,19 @@ int main(int argc, char* argv[]) {
 				MMSP::output(grid, filename);
 			}
 			if (rank==0) {
-				std::cout<<"        Times:\n";
-				for (unsigned int i=0; i<simtimes.size(); i++)
-					printf("            - %.6g\n",simtimes[i]);
-				std::cout<<"        Energies:\n";
-				for (unsigned int i=0; i<energies.size(); i++)
-					printf("            - %.6g\n",energies[i]);
-				std::cout<<"        Rates (dF/dt/V):\n";
-				for (unsigned int i=0; i<nrgrates.size(); i++)
-					printf("            - %.6g\n",nrgrates[i]);
+				std::cout<<"  - name: free energy\n"
+				         <<"    value:\n"
+				         <<"      times: [";
+				printf("%.6g",simtimes[0]);
+				for (unsigned int i=1; i<simtimes.size(); i++)
+					printf(", %.6g",simtimes[i]);
+				std::cout<<"]\n"
+				         <<"      values: [";
+				printf("%.6g",energies[0]);
+				for (unsigned int i=1; i<energies.size(); i++)
+					printf(", %.6g",energies[i]);
+				std::cout<<"]\n"
+				         <<"    unit: 1\n";
 			}
 		} else if (dim == 3) {
 			// construct grid object

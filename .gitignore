@@ -7,4 +7,5 @@
 *.log
 *.out
 *.png
+*.yml
 .directory
