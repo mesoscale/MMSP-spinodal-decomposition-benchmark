@@ -127,7 +127,7 @@ echo "--------------------------------------------------------------------------
 rm -rf ./*/meta.yml ./*/error.log
 codeversion=$(git submodule status | awk '{print $1}')
 repoversion=$(git rev-parse --verify HEAD)
-processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/architecture/' | sed 's/(R)//g' | sed 's/(tm)//g' | sed 's/(TM)//g' | sed 's/CPU//' | sed 's/Processor//' )
+processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/architecture/' | sed 's/(R)//g' | sed 's/(tm)//g' | sed 's/(TM)//g')
 sumspace=32
 
 n=${#exdirs[@]}
