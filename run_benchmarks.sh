@@ -127,7 +127,6 @@ echo "--------------------------------------------------------------------------
 rm -rf ./*/meta.yml ./*/error.log
 codeversion=$(git submodule status | awk '{print $1}')
 repoversion=$(git rev-parse --verify HEAD)
-cpufreq=$(($(cpufreq-info -f) / 1000))
 sumspace=32
 
 n=${#exdirs[@]}
@@ -154,7 +153,7 @@ do
 	echo "    # Optional hardware details" >>meta.yml
 	echo "    details:" >>meta.yml
 	echo "      - name: clock" >>meta.yml
-	echo "        value: ${cpufreq}" >>meta.yml
+	echo "        value: $(cpufreq-info -l | awk '{print $2 / 1000}')" >>meta.yml
 	echo "        units: MHz" >>meta.yml
 	echo "  software:" >>meta.yml
 	echo "    name: Mesoscale Microstructure Simulation Project (MMSP)" >>meta.yml
