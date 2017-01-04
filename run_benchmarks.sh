@@ -127,7 +127,7 @@ echo "--------------------------------------------------------------------------
 rm -rf ./*/meta.yml ./*/error.log
 codeversion=$(git submodule status | awk '{print $1}')
 repoversion=$(git rev-parse --verify HEAD)
-processor=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed 's/model name\t/architecture/' | sed 's/(R)//g' | sed 's/(tm)//g' | sed 's/(TM)//g')
+cpufreq=$(($(cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq) / 1000000))
 sumspace=32
 
 n=${#exdirs[@]}
@@ -140,26 +140,46 @@ do
 
 	# Write simulation particulars. Should work on any Debian-flavored GNU/Linux OS.
 	echo "---" >>meta.yml
-	echo "benchmark:" >>meta.yml
-	echo "  problem: 1${exlabels[$i]}" >>meta.yml
-	echo "  name: Trevor Keller" >>meta.yml
-	echo "  email: trevor.keller@nist.gov" >>meta.yml
-	echo "" >>meta.yml
 	echo "metadata:" >>meta.yml
-	echo "  description: MMSP spinodal decomposition benchmark, ${exdirs[$i]/\//} domain" >>meta.yml
-	echo "  code:" >>meta.yml
-	echo "    name: Mesoscale Microstructure Simulation Project (MMSP)" >>meta.yml
-	echo "    url: https://github.com/mesoscale/mmsp/tree/develop" >>meta.yml
-	echo "    version: ${codeversion}" >>meta.yml
-	echo "  repo:" >>meta.yml
-	echo "    name: MMSP spinodal decomposition benchmark" >>meta.yml
-	echo "    url: https://github.com/mesoscale/MMSP-spinodal-decomposition-benchmark/tree/master/${exdirs[$i]}" >>meta.yml
-	echo "    version: ${repoversion}" >>meta.yml
-	echo "  ${processor}" >>meta.yml
-	echo "  cores: ${CORES}" >>meta.yml
+	echo "  # Describe the runtime environment" >>meta.yml
+	echo "  summary: MPI parallel workstation benchmark with MMSP, ${exdirs[$i]/\//} domain" >>meta.yml
+	echo "  author: Trevor Keller" >>meta.yml
+	echo "  email: trevor.keller@nist.gov" >>meta.yml
 	echo "  date: $(date -R)" >>meta.yml
+	echo "  code:" >>meta.yml
+	echo "  hardware:" >>meta.yml
+	echo "    # Required hardware details" >>meta.yml
+	echo "    architecture: $(uname -m)" >>meta.yml
+	echo "    cores: $(nproc)" >>meta.yml
+	echo "    # Optional hardware details" >>meta.yml
+	echo "    details:" >>meta.yml
+	echo "      - name: clock" >>meta.yml
+	echo "        value: ${cpufreq}" >>meta.yml
+	echo "        units: MHz" >>meta.yml
+	echo "  software:" >>meta.yml
+	echo "    name: Mesoscale Microstructure Simulation Project (MMSP)" >>meta.yml
+	echo "    url: https://github.com/mesoscale/mmsp" >>meta.yml
+	echo "    version: 4" >>meta.yml
+	echo "    repo:" >>meta.yml
+	echo "      url: https://github.com/mesoscale/mmsp/tree/develop" >>meta.yml
+	echo "      version: ${codeversion}" >>meta.yml
+	echo "      branch: develop" >>meta.yml
+	echo "  implementation:" >>meta.yml
+	echo "    end_condition: time limit" >>meta.yml
+	echo "    repo:" >>meta.yml
+	echo "      url: https://github.com/mesoscale/MMSP-spinodal-decomposition-benchmark/tree/master/${exdirs[$i]}" >>meta.yml
+	echo "      version: ${repoversion}" >>meta.yml
+	echo "      branch: master" >>meta.yml
+	echo "    details:" >>meta.yml
+	echo "      - name: mesh" >>meta.yml
+	echo "        value: uniform rectilinear" >>meta.yml
+	echo "      - name: numerical_method" >>meta.yml
+	echo "        value: explicit finite difference" >>meta.yml
+	echo "      - name: compiler" >>meta.yml
+	echo "        value: GNU mpic++" >>meta.yml
+	echo "      - name: parallel_model" >>meta.yml
+	echo "        value: MPI" >>meta.yml
 	echo "" >>meta.yml
-	echo "data:" >>meta.yml
 
 	if make $MFLAG
 	then

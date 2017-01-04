@@ -345,6 +345,10 @@ int main(int argc, char* argv[]) {
 				MMSP::output(grid, filename);
 			}
 			if (rank==0) {
+				std::cout<<"data:\n"
+				         <<"  # Gather simulation output\n"
+				         <<"  - name: timestep\n"
+				         <<"    value: " << dt << '\n';
 				std::cout<<"  - name: free energy\n"
 				         <<"    value:\n"
 				         <<"      times: [";
