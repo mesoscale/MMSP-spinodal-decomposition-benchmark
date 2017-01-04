@@ -145,15 +145,14 @@ do
 	echo "  author: Trevor Keller" >>meta.yml
 	echo "  email: trevor.keller@nist.gov" >>meta.yml
 	echo "  date: $(date -R)" >>meta.yml
-	echo "  code:" >>meta.yml
 	echo "  hardware:" >>meta.yml
 	echo "    # Required hardware details" >>meta.yml
 	echo "    architecture: $(uname -m)" >>meta.yml
-	echo "    cores: $(nproc)" >>meta.yml
+	echo "    cores: ${CORES}" >>meta.yml
 	echo "    # Optional hardware details" >>meta.yml
 	echo "    details:" >>meta.yml
 	echo "      - name: clock" >>meta.yml
-	echo "        value: $(cpufreq-info -l | awk '{print $2 / 1000}')" >>meta.yml
+	echo "        value: $(lscpu | grep 'CPU max' | awk '{print $NF}')" >>meta.yml
 	echo "        units: MHz" >>meta.yml
 	echo "  software:" >>meta.yml
 	echo "    name: Mesoscale Microstructure Simulation Project (MMSP)" >>meta.yml
