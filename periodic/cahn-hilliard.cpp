@@ -39,15 +39,15 @@ double Helmholtz(const grid<dim,T>& GRID)
 
 void generate(int dim, const char* filename)
 {
-	if (dim!=2) {
-		std::cerr<<"ERROR: CHiMaD problems are 2-D, only!"<<std::endl;
-		std::exit(-1);
-	}
-
 	int rank=0;
 	#ifdef MPI_VERSION
 	rank = MPI::COMM_WORLD.Get_rank();
 	#endif
+
+	if (dim!=2 && rank==0) {
+		std::cerr<<"ERROR: CHiMaD problems are 2-D, only!"<<std::endl;
+		std::exit(-1);
+	}
 
 	if (dim==2) {
 		GRID2D initGrid(1,0,200,0,200);

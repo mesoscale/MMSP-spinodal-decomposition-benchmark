@@ -92,7 +92,8 @@ void generate(int dim, const char* filename)
 	#ifdef MPI_VERSION
 	rank = MPI::COMM_WORLD.Get_rank();
 	#endif
-	if (dim!=2) {
+
+	if (dim!=2 && rank==0) {
 		std::cerr<<"ERROR: CHiMaD problems are 2-D, only!"<<std::endl;
 		std::exit(-1);
 	}
