@@ -351,10 +351,10 @@ int main(int argc, char* argv[]) {
 				         <<"    value: " << dt << '\n';
 				std::cout<<"  - name: free energy\n"
 				         <<"    # JSON list of {time, energy} pairs\n"
-				         <<"    value: [";
-				printf("{\"x\":%.6g, \"y\":%.6g}", simtimes[0], energies[0]);
+				         <<"    values: [";
+				printf("{\"time\":%.6g, \"energy\":%.6g}", simtimes[0], energies[0]);
 				for (unsigned int i=1; i<simtimes.size(); i++)
-					printf(", {\"x\":%.6g, \"y\":%.6g}", simtimes[i], energies[i]);
+					printf(", {\"time\":%.6g, \"energy\":%.6g}", simtimes[i], energies[i]);
 				std::cout<<"]\n";
 			}
 		} else if (dim == 3) {

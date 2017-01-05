@@ -67,23 +67,6 @@ void generate(int dim, const char* filename)
 		ghostswap(initGrid);
 		output(initGrid,filename);
 
-        if (rank==0) {
-			std::cout<<"benchmark:\n"
-			         <<"  # Specify the problem\n"
-			         <<"  model: spinodal decomposition\n"
-			         <<"  boundary_condition: no-flux\n"
-			         <<"  id: 1b\n";
-			std::cout<<"  domain:\n"
-			         <<"    - name: geometry\n"
-			         <<"      value: square\n"
-			         <<"    - name: origin\n"
-			         <<"      value: ["<<g0(initGrid,0)<<", "<<g0(initGrid,1)<<"]\n"
-		 	         <<"    - name: size\n"
-			         <<"      value: ["<<g1(initGrid,0)-g0(initGrid,0)<<", "<<g1(initGrid,1)-g0(initGrid,1)<<"]\n"
-			         <<"    - name: resolution\n"
-			         <<"      value: ["<<dx(initGrid, 0)<<", "<<dx(initGrid,1)<<"]\n";
-			std::cout<<'\n';
-		}
 	}
 }
 

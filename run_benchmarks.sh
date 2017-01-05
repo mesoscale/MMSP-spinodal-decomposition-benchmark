@@ -139,6 +139,9 @@ do
 
 	# Write simulation particulars. Should work on any Debian-flavored GNU/Linux OS.
 	echo "---" >>meta.yml
+	echo "benchmark:" >>meta.yml
+	echo "  id: 1${exlabels[$i]}" >>meta.yml
+	echo "" >>meta.yml
 	echo "metadata:" >>meta.yml
 	echo "  # Describe the runtime environment" >>meta.yml
 	echo "  summary: MPI parallel workstation benchmark with MMSP, ${exdirs[$i]/\//} domain" >>meta.yml
@@ -155,7 +158,7 @@ do
 	echo "        value: $(grep -m1 MHz /proc/cpuinfo | awk '{print $NF}')" >>meta.yml
 	echo "        units: MHz" >>meta.yml
 	echo "  software:" >>meta.yml
-	echo "    name: Mesoscale Microstructure Simulation Project (MMSP)" >>meta.yml
+	echo "    name: mmsp" >>meta.yml
 	echo "    url: https://github.com/mesoscale/mmsp" >>meta.yml
 	echo "    version: 4" >>meta.yml
 	echo "    repo:" >>meta.yml
