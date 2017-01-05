@@ -350,18 +350,12 @@ int main(int argc, char* argv[]) {
 				         <<"  - name: timestep\n"
 				         <<"    value: " << dt << '\n';
 				std::cout<<"  - name: free energy\n"
-				         <<"    value:\n"
-				         <<"      times: [";
-				printf("%.6g",simtimes[0]);
+				         <<"    # JSON list of {time, energy} pairs\n"
+				         <<"    value: [";
+				printf("{\"x\":%.6g, \"y\":%.6g}", simtimes[0], energies[0]);
 				for (unsigned int i=1; i<simtimes.size(); i++)
-					printf(", %.6g",simtimes[i]);
-				std::cout<<"]\n"
-				         <<"      values: [";
-				printf("%.6g",energies[0]);
-				for (unsigned int i=1; i<energies.size(); i++)
-					printf(", %.6g",energies[i]);
-				std::cout<<"]\n"
-				         <<"    unit: 1\n";
+					printf(", {\"x\":%.6g, \"y\":%.6g}", simtimes[i], energies[i]);
+				std::cout<<"]\n";
 			}
 		} else if (dim == 3) {
 			// construct grid object

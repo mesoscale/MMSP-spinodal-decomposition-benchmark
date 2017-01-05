@@ -152,7 +152,7 @@ do
 	echo "    # Optional hardware details" >>meta.yml
 	echo "    details:" >>meta.yml
 	echo "      - name: clock" >>meta.yml
-	echo "        value: $(lscpu | grep 'CPU max' | awk '{print $NF}')" >>meta.yml
+	echo "        value: $(grep -m1 MHz /proc/cpuinfo | awk '{print $NF}')" >>meta.yml
 	echo "        units: MHz" >>meta.yml
 	echo "  software:" >>meta.yml
 	echo "    name: Mesoscale Microstructure Simulation Project (MMSP)" >>meta.yml
