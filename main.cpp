@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
 				         <<"  # Gather simulation output\n"
 				         <<"  - name: timestep\n"
 				         <<"    value: " << dt << '\n';
-				std::cout<<"  - name: free energy\n"
+				std::cout<<"  - name: free_energy\n"
 				         <<"    # JSON list of {time, energy} pairs\n"
 				         <<"    values: [";
 				printf("{\"time\":%.6g, \"energy\":%.6g}", simtimes[0], energies[0]);
