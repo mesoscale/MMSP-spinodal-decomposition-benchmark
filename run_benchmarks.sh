@@ -37,7 +37,7 @@ MFLAG="-s"
 
 # Set execution parameters
 ITERS=10000
-INTER=10000
+INTER=1000
 CORES=4
 COREMAX=$(nproc)
 if [[ $CORES -gt $COREMAX ]]
@@ -132,7 +132,8 @@ if [[ $cpufreq == "" ]]
 then
 	cpufreq=$(grep -m1 MHz /proc/cpuinfo | awk '{print $NF}')
 fi
-sumspace=32
+ndots=$(($ITERS / $INTER))
+sumspace=$((32 - $ndots/2))
 
 n=${#exdirs[@]}
 for (( i=0; i<$n; i++ ))
@@ -176,6 +177,7 @@ do
 	echo "      url: https://github.com/mesoscale/MMSP-spinodal-decomposition-benchmark/tree/master/${exdirs[$i]}" >>meta.yml
 	echo "      version: ${repoversion}" >>meta.yml
 	echo "      branch: master" >>meta.yml
+	echo "      badge: https://api.travis-ci.org/mesoscale/MMSP-spinodal-decomposition-benchmark.svg?branch=master" >>meta.yml
 	echo "    details:" >>meta.yml
 	echo "      - name: mesh" >>meta.yml
 	echo "        value: uniform rectilinear" >>meta.yml
@@ -205,7 +207,24 @@ do
 		rm -f test.*.dat
 		(/usr/bin/time -f "  - name: run_time\n    values: {'time': %e, 'unit': seconds}\n  - name: memory_usage\n    values: {'value': %M, 'unit': KB}" bash -c \
 		"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>meta.yml 2>>error.log && \
-		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml
+		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml &
+
+		# Travis CI quits after 10 minutes with no CLI activity. Give it an indication that things are running.
+		JOBID=$!
+		sleep 30
+		OLDFILES=$(ls -1 test*.dat | wc -l)
+		while kill -0 "$JOBID" &>/dev/null
+		do
+			sleep 14
+			NEWFILES=$(ls -1 test*.dat | wc -l)
+			if [[ $NEWFILES > $OLDFILES ]]
+			then
+				# A checkpoint was written while we slept. Tell the terminal.
+				echo -n '•'
+				OLDFILES=$NEWFILES
+			fi
+		done
+
 		# Return codes are not reliable. Save errors to disk for postmortem.
 		if [[ -f error.log ]] && [[ $(wc -w error.log) > 1 ]]
 		then
