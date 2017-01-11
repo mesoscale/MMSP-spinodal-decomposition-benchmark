@@ -80,11 +80,15 @@ do
 		;;
 		--long)
 			ITERS=$((10*$ITERS))
-			INTER=$(($ITERS/10))
+			INTER=$(($ITERS/100))
 		;;
 		--extra)
 			ITERS=$((100*$ITERS))
-			INTER=$(($ITERS/100))
+			INTER=$(($ITERS/1000))
+		;;
+		--steadystate)
+			ITERS=51200000
+			INTER=102400
 		;;
 		--noviz)
 			echo -n ", no PNG output"
@@ -127,10 +131,10 @@ echo "--------------------------------------------------------------------------
 rm -rf ./*/meta.yml ./*/error.log
 codeversion=$(git submodule status | awk '{print $1}')
 repoversion=$(git rev-parse --verify HEAD)
-cpufreq=$(lscpu | grep "max MHz" | awk '{print $NF}')
+cpufreq=$(lscpu | grep "max MHz" | awk '{print $NF/1000}')
 if [[ $cpufreq == "" ]]
 then
-	cpufreq=$(grep -m1 MHz /proc/cpuinfo | awk '{print $NF}')
+	cpufreq=$(grep -m1 MHz /proc/cpuinfo | awk '{print $NF/1000}')
 fi
 ndots=$(($ITERS / $INTER))
 sumspace=$((32 - $ndots/2))
@@ -150,7 +154,7 @@ do
 	echo "" >>meta.yml
 	echo "metadata:" >>meta.yml
 	echo "  # Describe the runtime environment" >>meta.yml
-	echo "  summary: MPI parallel workstation benchmark with MMSP, ${exdirs[$i]/\//} domain" >>meta.yml
+	echo "  summary: MPI parallel Travis-CI benchmark with MMSP, ${exdirs[$i]/\//} domain" >>meta.yml
 	echo "  author: Trevor Keller" >>meta.yml
 	echo "  email: trevor.keller@nist.gov" >>meta.yml
 	echo "  date: $(date -R)" >>meta.yml
@@ -161,32 +165,30 @@ do
 	echo "    # Optional hardware details" >>meta.yml
 	echo "    details:" >>meta.yml
 	echo "      - name: clock" >>meta.yml
-	echo "        value: ${cpufreq}" >>meta.yml
-	echo "        units: MHz" >>meta.yml
+	echo "        values: ${cpufreq}" >>meta.yml
+	echo "        # unit: GHz" >>meta.yml
 	echo "  software:" >>meta.yml
 	echo "    name: mmsp" >>meta.yml
 	echo "    url: https://github.com/mesoscale/mmsp" >>meta.yml
-	echo "    version: 4" >>meta.yml
+	echo "    version: \"4\"" >>meta.yml
 	echo "    repo:" >>meta.yml
 	echo "      url: https://github.com/mesoscale/mmsp/tree/develop" >>meta.yml
-	echo "      version: ${codeversion}" >>meta.yml
-	echo "      branch: develop" >>meta.yml
+	echo "      version: \"${codeversion}\"" >>meta.yml
 	echo "  implementation:" >>meta.yml
-	echo "    end_condition: time limit" >>meta.yml
+	echo "    end_condition: time limit, Travis CI runs die after 50 minutes total" >>meta.yml
 	echo "    repo:" >>meta.yml
 	echo "      url: https://github.com/mesoscale/MMSP-spinodal-decomposition-benchmark/tree/master/${exdirs[$i]}" >>meta.yml
-	echo "      version: ${repoversion}" >>meta.yml
-	echo "      branch: master" >>meta.yml
-	echo "      badge: https://api.travis-ci.org/mesoscale/MMSP-spinodal-decomposition-benchmark.svg?branch=master" >>meta.yml
+	echo "      version: \"${repoversion}\"" >>meta.yml
+	echo "      # badge: https://api.travis-ci.org/mesoscale/MMSP-spinodal-decomposition-benchmark.svg?branch=master" >>meta.yml
 	echo "    details:" >>meta.yml
 	echo "      - name: mesh" >>meta.yml
-	echo "        value: uniform rectilinear" >>meta.yml
+	echo "        values: uniform rectilinear" >>meta.yml
 	echo "      - name: numerical_method" >>meta.yml
-	echo "        value: explicit finite difference" >>meta.yml
+	echo "        values: explicit finite difference" >>meta.yml
 	echo "      - name: compiler" >>meta.yml
-	echo "        value: GNU mpic++" >>meta.yml
+	echo "        values: GNU mpic++" >>meta.yml
 	echo "      - name: parallel_model" >>meta.yml
-	echo "        value: MPI" >>meta.yml
+	echo "        values: MPI" >>meta.yml
 	echo "" >>meta.yml
 
 	if make $MFLAG
@@ -205,7 +207,7 @@ do
 	then
 		# Run the example in parallel, for speed.
 		rm -f test.*.dat
-		(/usr/bin/time -f "  - name: run_time\n    values: {'time': %e, 'unit': seconds}\n  - name: memory_usage\n    values: {'value': %M, 'unit': KB}" bash -c \
+		(/usr/bin/time -f "  - name: run_time\n    values: {\"time\": %e, \"unit\": seconds}\n  - name: memory_usage\n    values: {\"value\": %M, \"unit\": KB}" bash -c \
 		"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>meta.yml 2>>error.log && \
 		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml &
 

@@ -348,14 +348,24 @@ int main(int argc, char* argv[]) {
 				std::cout<<"data:\n"
 				         <<"  # Gather simulation output\n"
 				         <<"  - name: timestep\n"
-				         <<"    value: " << dt << '\n';
+				         <<"    values: " << dt << '\n';
 				std::cout<<"  - name: free_energy\n"
-				         <<"    # JSON list of {time, energy} pairs\n"
-				         <<"    values: [";
-				printf("{\"time\":%.6g, \"energy\":%.6g}", simtimes[0], energies[0]);
+				         <<"    values:\n";
+				         <<"      [\n";
+				printf(    "        {\n"
+				           "          'time': %.6g,\n"
+				           "          'free_energy': %.6g\n"
+				           "        }", simtimes[0], energies[0]);
 				for (unsigned int i=1; i<simtimes.size(); i++)
-					printf(", {\"time\":%.6g, \"energy\":%.6g}", simtimes[i], energies[i]);
-				std::cout<<"]\n";
+					printf(",\n"
+					       "        {\n"
+					       "          'time': %.6g,\n"
+					       "          'free_energy': %.6g\n"
+					       "        }", simtimes[i], energies[i]);
+				std::cout<<"\n      ]\n"
+				         <<"    transform:\n"
+				         <<"      - type: filter\n"
+				         <<"        test: \"datum.time > 0.01\"\n";
 			}
 		} else if (dim == 3) {
 			// construct grid object
