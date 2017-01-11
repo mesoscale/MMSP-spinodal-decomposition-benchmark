@@ -36,8 +36,8 @@ nParRun=0
 MFLAG="-s"
 
 # Set execution parameters
-ITERS=3900
-INTER=390
+ITERS=3500
+INTER=350
 CORES=4
 COREMAX=$(nproc)
 if [[ $CORES -gt $COREMAX ]]
@@ -149,8 +149,7 @@ do
 
 	# Write simulation particulars. Should work on any Debian-flavored GNU/Linux OS.
 	echo "---" >>meta.yml
-	echo "benchmark:" >>meta.yml
-	echo "  id: 1${exlabels[$i]}" >>meta.yml
+	echo "benchmark_id: 1${exlabels[$i]}" >>meta.yml
 	echo "" >>meta.yml
 	echo "metadata:" >>meta.yml
 	echo "  # Describe the runtime environment" >>meta.yml
