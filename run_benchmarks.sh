@@ -36,8 +36,8 @@ nParRun=0
 MFLAG="-s"
 
 # Set execution parameters
-ITERS=3000
-INTER=300
+ITERS=4000
+INTER=250
 CORES=4
 COREMAX=$(nproc)
 if [[ $CORES -gt $COREMAX ]]
