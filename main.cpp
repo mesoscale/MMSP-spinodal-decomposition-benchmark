@@ -350,7 +350,7 @@ int main(int argc, char* argv[]) {
 				         <<"  - name: timestep\n"
 				         <<"    values: " << dt << '\n';
 				std::cout<<"  - name: free_energy\n"
-				         <<"    values:\n";
+				         <<"    values:\n"
 				         <<"      [\n";
 				printf(    "        {\n"
 				           "          'time': %.6g,\n"
