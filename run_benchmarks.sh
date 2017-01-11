@@ -36,8 +36,8 @@ nParRun=0
 MFLAG="-s"
 
 # Set execution parameters
-ITERS=3500
-INTER=350
+ITERS=3000
+INTER=300
 CORES=4
 COREMAX=$(nproc)
 if [[ $CORES -gt $COREMAX ]]
@@ -80,11 +80,11 @@ do
 		;;
 		--long)
 			ITERS=$((10*$ITERS))
-			INTER=$(($ITERS/100))
+			INTER=$(($ITERS/10))
 		;;
 		--extra)
 			ITERS=$((100*$ITERS))
-			INTER=$(($ITERS/1000))
+			INTER=$(($ITERS/100))
 		;;
 		--steadystate)
 			ITERS=51200000
