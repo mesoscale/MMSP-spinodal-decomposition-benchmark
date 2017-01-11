@@ -366,6 +366,11 @@ int main(int argc, char* argv[]) {
 				         <<"    transform:\n"
 				         <<"      - type: filter\n"
 				         <<"        test: \"datum.time > 0.01\"\n";
+				std::cout<<"  - name: run_time\n"
+				         <<"    values:\n"
+				         <<"      [\n"
+				         <<"        {\n";
+				printf(    "          \"sim_time\": %.6g,\n", simtimes.back());
 			}
 		} else if (dim == 3) {
 			// construct grid object
