@@ -39,15 +39,15 @@ double Helmholtz(const grid<dim,T>& GRID)
 
 void generate(int dim, const char* filename)
 {
-	if (dim!=2) {
-		std::cerr<<"ERROR: CHiMaD problems are 2-D, only!"<<std::endl;
-		std::exit(-1);
-	}
-
 	int rank=0;
 	#ifdef MPI_VERSION
 	rank = MPI::COMM_WORLD.Get_rank();
 	#endif
+
+	if (dim!=2 && rank==0) {
+		std::cerr<<"ERROR: CHiMaD problems are 2-D, only!"<<std::endl;
+		std::exit(-1);
+	}
 
 	if (dim==2) {
 		GRID2D initGrid(1,0,200,0,200);
@@ -67,23 +67,6 @@ void generate(int dim, const char* filename)
 		ghostswap(initGrid);
 		output(initGrid,filename);
 
-        if (rank==0) {
-			std::cout<<"benchmark:\n"
-			         <<"  # Specify the problem\n"
-			         <<"  model: spinodal decomposition\n"
-			         <<"  boundary_condition: no-flux\n"
-			         <<"  id: 1b\n";
-			std::cout<<"  domain:\n"
-			         <<"    - name: geometry\n"
-			         <<"      value: square\n"
-			         <<"    - name: origin\n"
-			         <<"      value: ["<<g0(initGrid,0)<<", "<<g0(initGrid,1)<<"]\n"
-		 	         <<"    - name: size\n"
-			         <<"      value: ["<<g1(initGrid,0)-g0(initGrid,0)<<", "<<g1(initGrid,1)-g0(initGrid,1)<<"]\n"
-			         <<"    - name: resolution\n"
-			         <<"      value: ["<<dx(initGrid, 0)<<", "<<dx(initGrid,1)<<"]\n";
-			std::cout<<'\n';
-		}
 	}
 }
 

@@ -22,7 +22,7 @@ install:
     - sudo apt-get -y install -qq libopenmpi-dev openmpi-bin
 
 script:
-    - ./run_benchmarks.sh --np 2 --noviz
+    - ./run_benchmarks.sh --np 2 --long --noviz
 
 after_script:
     - for d in {periodic,no-flux,T-shape}; do cat $d/meta.yml; echo; done

@@ -348,14 +348,29 @@ int main(int argc, char* argv[]) {
 				std::cout<<"data:\n"
 				         <<"  # Gather simulation output\n"
 				         <<"  - name: timestep\n"
-				         <<"    value: " << dt << '\n';
-				std::cout<<"  - name: free energy\n"
-				         <<"    # JSON list of {time, energy} pairs\n"
-				         <<"    value: [";
-				printf("{\"x\":%.6g, \"y\":%.6g}", simtimes[0], energies[0]);
+				         <<"    values: " << dt << '\n';
+				std::cout<<"  - name: free_energy\n"
+				         <<"    values:\n"
+				         <<"      [\n";
+				printf(    "        {\n"
+				           "          'time': %.6g,\n"
+				           "          'free_energy': %.6g\n"
+				           "        }", simtimes[0], energies[0]);
 				for (unsigned int i=1; i<simtimes.size(); i++)
-					printf(", {\"x\":%.6g, \"y\":%.6g}", simtimes[i], energies[i]);
-				std::cout<<"]\n";
+					printf(",\n"
+					       "        {\n"
+					       "          'time': %.6g,\n"
+					       "          'free_energy': %.6g\n"
+					       "        }", simtimes[i], energies[i]);
+				std::cout<<"\n      ]\n"
+				         <<"    transform:\n"
+				         <<"      - type: filter\n"
+				         <<"        test: \"datum.time > 0.01\"\n";
+				std::cout<<"  - name: run_time\n"
+				         <<"    values:\n"
+				         <<"      [\n"
+				         <<"        {\n";
+				printf(    "          \"sim_time\": %.6g,\n", simtimes.back());
 			}
 		} else if (dim == 3) {
 			// construct grid object

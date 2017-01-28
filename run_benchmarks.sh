@@ -36,8 +36,8 @@ nParRun=0
 MFLAG="-s"
 
 # Set execution parameters
-ITERS=10000
-INTER=10000
+ITERS=4000
+INTER=250
 CORES=4
 COREMAX=$(nproc)
 if [[ $CORES -gt $COREMAX ]]
@@ -86,6 +86,10 @@ do
 			ITERS=$((100*$ITERS))
 			INTER=$(($ITERS/100))
 		;;
+		--steadystate)
+			ITERS=51200000
+			INTER=102400
+		;;
 		--noviz)
 			echo -n ", no PNG output"
 			NOVIZ=true
@@ -127,7 +131,13 @@ echo "--------------------------------------------------------------------------
 rm -rf ./*/meta.yml ./*/error.log
 codeversion=$(git submodule status | awk '{print $1}')
 repoversion=$(git rev-parse --verify HEAD)
-sumspace=32
+cpufreq=$(lscpu | grep "max MHz" | awk '{print $NF/1000}')
+if [[ $cpufreq == "" ]]
+then
+	cpufreq=$(grep -m1 MHz /proc/cpuinfo | awk '{print $NF/1000}')
+fi
+ndots=$(($ITERS / $INTER))
+sumspace=$((32 - $ndots/2))
 
 n=${#exdirs[@]}
 for (( i=0; i<$n; i++ ))
@@ -139,9 +149,11 @@ do
 
 	# Write simulation particulars. Should work on any Debian-flavored GNU/Linux OS.
 	echo "---" >>meta.yml
+	echo "benchmark_id: 1${exlabels[$i]}" >>meta.yml
+	echo "" >>meta.yml
 	echo "metadata:" >>meta.yml
 	echo "  # Describe the runtime environment" >>meta.yml
-	echo "  summary: MPI parallel workstation benchmark with MMSP, ${exdirs[$i]/\//} domain" >>meta.yml
+	echo "  summary: MPI parallel Travis-CI benchmark with MMSP, ${exdirs[$i]/\//} domain" >>meta.yml
 	echo "  author: Trevor Keller" >>meta.yml
 	echo "  email: trevor.keller@nist.gov" >>meta.yml
 	echo "  date: $(date -R)" >>meta.yml
@@ -152,31 +164,30 @@ do
 	echo "    # Optional hardware details" >>meta.yml
 	echo "    details:" >>meta.yml
 	echo "      - name: clock" >>meta.yml
-	echo "        value: $(grep -m1 MHz /proc/cpuinfo | awk '{print $NF}')" >>meta.yml
-	echo "        units: MHz" >>meta.yml
+	echo "        values: ${cpufreq}" >>meta.yml
+	echo "        # unit: GHz" >>meta.yml
 	echo "  software:" >>meta.yml
-	echo "    name: Mesoscale Microstructure Simulation Project (MMSP)" >>meta.yml
+	echo "    name: mmsp" >>meta.yml
 	echo "    url: https://github.com/mesoscale/mmsp" >>meta.yml
-	echo "    version: 4" >>meta.yml
+	echo "    version: \"4\"" >>meta.yml
 	echo "    repo:" >>meta.yml
 	echo "      url: https://github.com/mesoscale/mmsp/tree/develop" >>meta.yml
-	echo "      version: ${codeversion}" >>meta.yml
-	echo "      branch: develop" >>meta.yml
+	echo "      version: \"${codeversion}\"" >>meta.yml
 	echo "  implementation:" >>meta.yml
-	echo "    end_condition: time limit" >>meta.yml
+	echo "    end_condition: time limit, Travis CI runs die after 50 minutes total" >>meta.yml
 	echo "    repo:" >>meta.yml
 	echo "      url: https://github.com/mesoscale/MMSP-spinodal-decomposition-benchmark/tree/master/${exdirs[$i]}" >>meta.yml
-	echo "      version: ${repoversion}" >>meta.yml
-	echo "      branch: master" >>meta.yml
+	echo "      version: \"${repoversion}\"" >>meta.yml
+	echo "      # badge: https://api.travis-ci.org/mesoscale/MMSP-spinodal-decomposition-benchmark.svg?branch=master" >>meta.yml
 	echo "    details:" >>meta.yml
 	echo "      - name: mesh" >>meta.yml
-	echo "        value: uniform rectilinear" >>meta.yml
+	echo "        values: uniform rectilinear" >>meta.yml
 	echo "      - name: numerical_method" >>meta.yml
-	echo "        value: explicit finite difference" >>meta.yml
+	echo "        values: explicit finite difference" >>meta.yml
 	echo "      - name: compiler" >>meta.yml
-	echo "        value: GNU mpic++" >>meta.yml
+	echo "        values: GNU mpic++" >>meta.yml
 	echo "      - name: parallel_model" >>meta.yml
-	echo "        value: MPI" >>meta.yml
+	echo "        values: MPI" >>meta.yml
 	echo "" >>meta.yml
 
 	if make $MFLAG
@@ -195,9 +206,28 @@ do
 	then
 		# Run the example in parallel, for speed.
 		rm -f test.*.dat
-		(/usr/bin/time -f '  - name: run time\n    value: %e\n    unit: seconds\n  - name: memory usage\n    value: %M\n    unit: KB' bash -c \
+		# Note: final simulation time is written by the program,
+		# so this script finishes the partial runtime block output
+		(/usr/bin/time -f "          \"time\": %e # seconds\n        }\n      ]\n  - name: memory_usage\n    values:\n      [\n        {\n          \"value\": %M,\n          \"unit\": KB\n        }\n      ]" bash -c \
 		"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>meta.yml 2>>error.log && \
-		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml
+		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml &
+
+		# Travis CI quits after 10 minutes with no CLI activity. Give it an indication that things are running.
+		JOBID=$!
+		sleep 30
+		OLDFILES=$(ls -1 test*.dat | wc -l)
+		while kill -0 "$JOBID" &>/dev/null
+		do
+			sleep 14
+			NEWFILES=$(ls -1 test*.dat | wc -l)
+			if [[ $NEWFILES > $OLDFILES ]]
+			then
+				# A checkpoint was written while we slept. Tell the terminal.
+				echo -n '•'
+				OLDFILES=$NEWFILES
+			fi
+		done
+
 		# Return codes are not reliable. Save errors to disk for postmortem.
 		if [[ -f error.log ]] && [[ $(wc -w error.log) > 1 ]]
 		then
