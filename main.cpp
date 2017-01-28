@@ -350,22 +350,20 @@ int main(int argc, char* argv[]) {
 				         <<"  - name: timestep\n"
 				         <<"    values: " << dt << '\n';
 				std::cout<<"  - name: free_energy\n"
-				         <<"    values:\n"
-				         <<"      [\n";
-				printf(    "        {\n"
-				           "          'time': %.6g,\n"
-				           "          'free_energy': %.6g\n"
-				           "        }", simtimes[0], energies[0]);
-				for (unsigned int i=1; i<simtimes.size(); i++)
-					printf(",\n"
-					       "        {\n"
-					       "          'time': %.6g,\n"
-					       "          'free_energy': %.6g\n"
-					       "        }", simtimes[i], energies[i]);
-				std::cout<<"\n      ]\n"
+				         <<"    url: energy.csv\n"
+				         <<"    format:\n"
+				         <<"      type: csv\n"
+				         <<"      parse:\n"
+				         <<"        time: number\n"
+				         <<"        free_energy: number\n"
 				         <<"    transform:\n"
 				         <<"      - type: filter\n"
 				         <<"        test: \"datum.time > 0.01\"\n";
+
+				std::ofstream of("energy.csv");
+				of << "time,free_energy\n";
+				for (unsigned int i=0; i<simtimes.size(); i++)
+					of << simtimes[i] << ',' << energies[i] << '\n';
 				std::cout<<"  - name: run_time\n"
 				         <<"    values:\n"
 				         <<"      [\n"

@@ -149,14 +149,16 @@ do
 
 	# Write simulation particulars. Should work on any Debian-flavored GNU/Linux OS.
 	echo "---" >>meta.yml
-	echo "benchmark_id: 1${exlabels[$i]}" >>meta.yml
+	echo "benchmark:" >>meta.yml
+	echo "  id: 1${exlabels[$i]}" >>meta.yml
+	echo "  version: 1" >>meta.yml
 	echo "" >>meta.yml
 	echo "metadata:" >>meta.yml
 	echo "  # Describe the runtime environment" >>meta.yml
 	echo "  summary: MPI parallel Travis-CI benchmark with MMSP, ${exdirs[$i]/\//} domain" >>meta.yml
 	echo "  author: Trevor Keller" >>meta.yml
 	echo "  email: trevor.keller@nist.gov" >>meta.yml
-	echo "  date: $(date -R)" >>meta.yml
+	echo "  timestamp: $(date -R)" >>meta.yml
 	echo "  hardware:" >>meta.yml
 	echo "    # Required hardware details" >>meta.yml
 	echo "    architecture: $(uname -m)" >>meta.yml
