@@ -9,11 +9,12 @@
 const double deltaX = 1.0;
 const double Ca = 0.3;
 const double Cb = 0.7;
-const double C0 = 0.5;
 const double rhoS = 5.0;
-const double M = 2.0;
 const double kappa = 2.0;
-const double CFL = 0.25;
+const double M = 5.0;
+const double C0 = 0.5;
+const double epsilon = 0.01;
+const double CFL = 0.125;
 const double dt = std::pow(deltaX, 4)*CFL/(32.0*M*kappa);
 
 double chemenergy(const double& C)
@@ -35,7 +36,6 @@ double dfdc(const double& C)
 double cheminit(const double& x, const double& y)
 {
 	// Equation 12
-	const double epsilon = 0.01;
 	return C0 + epsilon * ( std::cos(0.105*x)          * std::cos(0.11*y)
 	                      + std::pow(std::cos(0.13*x)  * std::cos(0.087*y), 2.0)
 	                      + std::cos(0.025*x - 0.15*y) * std::cos(0.07*x - 0.02*y)
