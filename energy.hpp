@@ -14,8 +14,8 @@ const double kappa = 2.0;
 const double M = 5.0;
 const double C0 = 0.5;
 const double epsilon = 0.01;
-const double CFL = 0.125;
-const double dt = std::pow(deltaX, 4)*CFL/(32.0*M*kappa);
+const double CFL = 0.25;
+const double dt = std::pow(deltaX, 4)*CFL/(24.0*M*kappa);
 
 double chemenergy(const double& C)
 {

@@ -301,30 +301,49 @@ int main(int argc, char* argv[]) {
 
 			double V = dx(grid,0) * dx(grid,1) * (g1(grid,0)-g0(grid,0)) * (g1(grid,1)-g0(grid,1));
 
-			std::vector<double> energies;
-			std::vector<double> simtimes;
-
 			double t = dt * iterations_start;
 
 			// Use rate (dF/dt/V) to check for equilibrium.
 			// Stop evolving when rate drops below unity.
 			double rate = 1000.0;
 
-			if (iterations_start==0) {
-				double F = Helmholtz(grid);
-				simtimes.push_back(t);
-				energies.push_back(F);
-			}
+			double simtimes = 0;
 
 			// perform computation
+			if (rank==0) {
+				std::cout<<"data:\n"
+				         <<"  # Gather simulation output\n"
+				         <<"  - name: timestep\n"
+				         <<"    values: " << dt << '\n';
+				std::cout<<"  - name: free_energy\n"
+				         <<"    url: energy.csv\n"
+				         <<"    format:\n"
+				         <<"      type: csv\n"
+				         <<"      parse:\n"
+				         <<"        time: number\n"
+				         <<"        free_energy: number\n"
+				         <<"    transform:\n"
+				         <<"      - type: filter\n"
+				         <<"        test: \"datum.time > 0.01\"\n";
+			}
+
+			std::ofstream of("energy.csv");
+			of << "time,free_energy\n";
+			if (iterations_start==0) {
+				of << t << ',' << Helmholtz(grid);
+				simtimes = t;
+			}
+
 			for (int i = iterations_start; i < steps && rate>1.0; i += increment) {
 				double oldF = MMSP::update(grid, increment);
 				double F = Helmholtz(grid);
 				rate = (oldF - F) / (1.0e-14 * V * dt); // -dF/dt/V
 
 				t += dt * increment;
-				simtimes.push_back(t);
-				energies.push_back(F);
+				simtimes = t;
+
+				if (rank==0)
+					of << t << ',' << F << '\n';
 
 				// generate output filename
 				std::stringstream outstr;
@@ -344,32 +363,15 @@ int main(int argc, char* argv[]) {
 				// write grid output to file
 				MMSP::output(grid, filename);
 			}
-			if (rank==0) {
-				std::cout<<"data:\n"
-				         <<"  # Gather simulation output\n"
-				         <<"  - name: timestep\n"
-				         <<"    values: " << dt << '\n';
-				std::cout<<"  - name: free_energy\n"
-				         <<"    url: energy.csv\n"
-				         <<"    format:\n"
-				         <<"      type: csv\n"
-				         <<"      parse:\n"
-				         <<"        time: number\n"
-				         <<"        free_energy: number\n"
-				         <<"    transform:\n"
-				         <<"      - type: filter\n"
-				         <<"        test: \"datum.time > 0.01\"\n";
 
-				std::ofstream of("energy.csv");
-				of << "time,free_energy\n";
-				for (unsigned int i=0; i<simtimes.size(); i++)
-					of << simtimes[i] << ',' << energies[i] << '\n';
+			if (rank==0) {
 				std::cout<<"  - name: run_time\n"
 				         <<"    values:\n"
 				         <<"      [\n"
 				         <<"        {\n";
-				printf(    "          \"sim_time\": %.6g,\n", simtimes.back());
+				printf(    "          \"sim_time\": %.6g,\n", simtimes);
 			}
+			of.close();
 		} else if (dim == 3) {
 			// construct grid object
 			GRID3D grid(argv[1]);
