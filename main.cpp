@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
 			std::ofstream of("energy.csv");
 			of << "time,free_energy\n";
 			if (iterations_start==0) {
-				of << t << ',' << Helmholtz(grid);
+				of << t << ',' << Helmholtz(grid) << '\n';
 				simtimes = t;
 			}
 
