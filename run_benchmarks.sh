@@ -170,8 +170,7 @@ do
 	echo "        # unit: GHz" >>meta.yml
 	echo "  software:" >>meta.yml
 	echo "    name: mmsp" >>meta.yml
-	echo "    url: https://github.com/mesoscale/mmsp" >>meta.yml
-	echo "    version: \"4\"" >>meta.yml
+	echo "    version: \"5.2\"" >>meta.yml
 	echo "    repo:" >>meta.yml
 	echo "      url: https://github.com/mesoscale/mmsp/tree/develop" >>meta.yml
 	echo "      version: \"${codeversion}\"" >>meta.yml
