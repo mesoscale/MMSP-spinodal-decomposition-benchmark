@@ -108,7 +108,7 @@ done
 
 if [[ ! $NEXEC ]]
 then
-		echo ", taking $ITERS steps, using $CORES/$COREMAX MPI ranks"
+		echo ", taking $ITERS steps $INTER at a time, using $CORES/$COREMAX MPI ranks"
 else
 	echo
 fi
@@ -210,8 +210,8 @@ do
 		# Note: final simulation time is written by the program,
 		# so this script finishes the partial runtime block output
 		(/usr/bin/time -f "          \"time\": %e # seconds\n        }\n      ]\n  - name: memory_usage\n    values:\n      [\n        {\n          \"value\": %M,\n          \"unit\": KB\n        }\n      ]" bash -c \
-		"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>meta.yml 2>>error.log && \
-		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml &
+		"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.dat 1>>meta.yml 2>>error.log && \
+		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml &
 
 		# Travis CI quits after 10 minutes with no CLI activity. Give it an indication that things are running.
 		JOBID=$!
@@ -219,12 +219,12 @@ do
 		OLDFILES=$(ls -1 test*.dat | wc -l)
 		while kill -0 "$JOBID" &>/dev/null
 		do
-			sleep 14
+			sleep 28
 			NEWFILES=$(ls -1 test*.dat | wc -l)
 			if [[ $NEWFILES > $OLDFILES ]]
 			then
 				# A checkpoint was written while we slept. Tell the terminal.
-				echo -n '•'
+				echo -n "$NEWFILES "
 				OLDFILES=$NEWFILES
 			fi
 		done
