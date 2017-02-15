@@ -328,6 +328,8 @@ int main(int argc, char* argv[]) {
 			}
 
 			for (int i = iterations_start; i < steps; i += increment) {
+				MMSP::update(grid, increment);
+
 				t += dt * increment;
 				simtimes = t;
 

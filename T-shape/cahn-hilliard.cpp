@@ -124,7 +124,7 @@ void generate(int dim, const char* filename)
 }
 
 template <int dim, typename T>
-double update(grid<dim,T>& oldGrid, int steps)
+void update(grid<dim,T>& oldGrid, int steps)
 {
 	// Make sure the grid spacing is correct
 	for (int d=0; d<dim; d++) {
@@ -179,7 +179,6 @@ double update(grid<dim,T>& oldGrid, int steps)
 		swap(oldGrid,newGrid);
 	}
 	ghostswap(oldGrid);
-	return Helmholtz(newGrid);
 }
 
 } // MMSP

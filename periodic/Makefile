@@ -15,6 +15,9 @@ pflags = -O3 -Wall -I $(incdir) -include mpi.h
 cahn-hilliard: cahn-hilliard.cpp
 	$(compiler) $(flags) $< -o $@ -lz
 
+debug: cahn-hilliard.cpp
+	$(compiler) -pg -I $(incdir) $< -o $@ -lz
+
 parallel: cahn-hilliard.cpp
 	$(pcompiler) $(pflags) $< -o $@ -lz
 

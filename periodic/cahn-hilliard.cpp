@@ -66,7 +66,7 @@ void generate(int dim, const char* filename)
 }
 
 template <int dim, typename T>
-double update(grid<dim,T>& oldGrid, int steps)
+void update(grid<dim,T>& oldGrid, int steps)
 {
 	grid<dim,T> newGrid(oldGrid);
 	grid<dim,T> lapGrid(oldGrid);
@@ -96,7 +96,6 @@ double update(grid<dim,T>& oldGrid, int steps)
 		swap(oldGrid,newGrid);
 	}
 	ghostswap(oldGrid);
-	return Helmholtz(newGrid);
 }
 
 } // MMSP
