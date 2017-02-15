@@ -217,7 +217,7 @@ do
 		sleep 15
 		SELF=$(whoami)
 		JOBID=$(pgrep -u $SELF mpirun.openmpi)
-		echo -n "${JOBID}: "
+		echo -n "•"
 		NFILES=$(ls -1 test.*.dat | wc -l)
 		while kill -0 "${JOBID}" &>/dev/null
 		do
@@ -226,7 +226,7 @@ do
 			if [ "${CHKFILES}" -ne "${NFILES}" ]
 			then
 				# A checkpoint was written while we slept. Tell the terminal.
-				echo -n "${CHKFILES} "
+				echo -n "•"
 				NFILES=$CHKFILES
 			fi
 			JOBID=$(pgrep -u $SELF mpirun.openmpi)
