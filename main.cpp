@@ -332,9 +332,10 @@ int main(int argc, char* argv[]) {
 
 				t += dt * increment;
 				simtimes = t;
+				const double F = Helmholtz(grid);
 
 				if (rank==0)
-					of << t << ',' << Helmholtz(grid) << '\n';
+					of << t << ',' << F << '\n';
 
 				// generate output filename
 				std::stringstream outstr;

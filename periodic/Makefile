@@ -22,4 +22,4 @@ parallel: cahn-hilliard.cpp
 	$(pcompiler) $(pflags) $< -o $@ -lz
 
 clean:
-	rm -f cahn-hilliard parallel
+	rm -f cahn-hilliard debug parallel

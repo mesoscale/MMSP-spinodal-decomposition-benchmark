@@ -80,7 +80,7 @@ do
 		;;
 		--long)
 			ITERS=$((10*$ITERS))
-			INTER=$(($ITERS/100))
+			INTER=$(($ITERS/10))
 		;;
 		--extra)
 			ITERS=$((100*$ITERS))
@@ -210,25 +210,26 @@ do
 		# Note: final simulation time is written by the program,
 		# so this script finishes the partial runtime block output
 		(/usr/bin/time -f "          \"time\": %e # seconds\n        }\n      ]\n  - name: memory_usage\n    values:\n      [\n        {\n          \"value\": %M,\n          \"unit\": KB\n        }\n      ]" bash -c \
-		"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.dat 1>>meta.yml 2>>error.log && \
-		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml &
+		"/usr/bin/mpirun.openmpi -np $CORES ./parallel --example 2 test.0000.dat 1>>meta.yml 2>>error.log && \
+		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.0000.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml &
 
 		# Travis CI quits after 10 minutes with no CLI activity. Give it an indication that things are running.
 		sleep 15
 		SELF=$(whoami)
 		JOBID=$(pgrep -u $SELF mpirun.openmpi)
 		echo -n "${JOBID}: "
-		NFILES=$(ls -1 test*.dat | wc -l)
-		while [ -n "$(pgrep -u ${SELF} mpirun.openmpi)" ]
+		NFILES=$(ls -1 test.*.dat | wc -l)
+		while kill -0 "${JOBID}" &>/dev/null
 		do
 			sleep 15
-			CHKFILES=$(ls -1 test*.dat | wc -l)
-			if [[ $CHKFILES > $NFILES ]]
+			CHKFILES=$(ls -1 test.*.dat | wc -l)
+			if [ "${CHKFILES}" -ne "${NFILES}" ]
 			then
 				# A checkpoint was written while we slept. Tell the terminal.
 				echo -n "${CHKFILES} "
 				NFILES=$CHKFILES
 			fi
+			JOBID=$(pgrep -u $SELF mpirun.openmpi)
 		done
 
 		# Return codes are not reliable. Save errors to disk for postmortem.

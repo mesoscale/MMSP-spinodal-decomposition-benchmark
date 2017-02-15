@@ -24,13 +24,14 @@ double Helmholtz(const grid<dim,T>& GRID)
 	for (int n=0; n<nodes(GRID); n++) {
 		vector<int> x = position(GRID, n);
 		vector<double> gradc = gradient(GRID, x);
-		f += chemenergy(GRID(n));
+		f += chemenergy(GRID(x));
 		g += gradc*gradc;
 	}
 
 	double F = dV*(f + 0.5*kappa*g);
 	#ifdef MPI_VERSION
 	double myF(F);
+        MPI::COMM_WORLD.Barrier();
 	MPI::COMM_WORLD.Allreduce(&myF, &F, 1, MPI_DOUBLE, MPI_SUM);
 	#endif
 	return F;
@@ -56,7 +57,7 @@ void generate(int dim, const char* filename)
 
 		for (int n=0; n<nodes(initGrid); n++) {
 			vector<int> x = position(initGrid, n);
-			initGrid(n) = cheminit(dx(initGrid,0)*x[0], dx(initGrid,1)*x[1]);
+			initGrid(x) = cheminit(dx(initGrid,0)*x[0], dx(initGrid,1)*x[1]);
 		}
 
 		ghostswap(initGrid);
@@ -68,34 +69,26 @@ void generate(int dim, const char* filename)
 template <int dim, typename T>
 void update(grid<dim,T>& oldGrid, int steps)
 {
+	ghostswap(oldGrid);
 	grid<dim,T> newGrid(oldGrid);
 	grid<dim,T> lapGrid(oldGrid);
-	// Make sure the grid spacing is correct
-	for (int d=0; d<dim; d++) {
-		dx(oldGrid,d) = deltaX;
-		dx(newGrid,d) = deltaX;
-		dx(lapGrid,d) = deltaX;
-	}
 
 	for (int step=0; step<steps; step++) {
-		ghostswap(oldGrid);
-
 		for (int n=0; n<nodes(oldGrid); n++) {
 			vector<int> x = position(oldGrid, n);
-			const T& c = oldGrid(n);
-			lapGrid(n) = dfdc(c) - kappa*laplacian(oldGrid, x);
+			lapGrid(x) = dfdc(oldGrid(x)) - kappa*laplacian(oldGrid, x);
 		}
 
 		ghostswap(lapGrid);
 
 		for (int n=0; n<nodes(oldGrid); n++) {
 			vector<int> x = position(oldGrid, n);
-			newGrid(n) = oldGrid(n) + dt*M*laplacian(lapGrid, x);
+			newGrid(x) = oldGrid(x) + dt*M*laplacian(lapGrid, x);
 		}
 
 		swap(oldGrid,newGrid);
+		ghostswap(oldGrid);
 	}
-	ghostswap(oldGrid);
 }
 
 } // MMSP
