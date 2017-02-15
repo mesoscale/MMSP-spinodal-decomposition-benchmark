@@ -298,8 +298,6 @@ int main(int argc, char* argv[]) {
 			// construct grid object
 			GRID2D grid(argv[1]);
 
-			double V = dx(grid,0) * dx(grid,1) * (g1(grid,0)-g0(grid,0)) * (g1(grid,1)-g0(grid,1));
-
 			double t = dt * iterations_start;
 
 			double simtimes = 0;
@@ -330,14 +328,11 @@ int main(int argc, char* argv[]) {
 			}
 
 			for (int i = iterations_start; i < steps; i += increment) {
-				double oldF = MMSP::update(grid, increment);
-				double F = Helmholtz(grid);
-
 				t += dt * increment;
 				simtimes = t;
 
 				if (rank==0)
-					of << t << ',' << F << '\n';
+					of << t << ',' << Helmholtz(grid) << '\n';
 
 				// generate output filename
 				std::stringstream outstr;
