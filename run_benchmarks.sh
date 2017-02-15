@@ -214,13 +214,14 @@ do
 		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml &
 
 		# Travis CI quits after 10 minutes with no CLI activity. Give it an indication that things are running.
-		JOBID=$(pgrep parallel)
+		sleep 15
+		SELF=$(whoami)
+		JOBID=$(pgrep -u $SELF mpirun.openmpi)
 		echo -n "${JOBID}: "
-		sleep 30
 		NFILES=$(ls -1 test*.dat | wc -l)
-		while kill -0 "${JOBID}" &>/dev/null
+		while [ -n "$(pgrep -u ${SELF} mpirun.openmpi)" ]
 		do
-			sleep 59
+			sleep 15
 			CHKFILES=$(ls -1 test*.dat | wc -l)
 			if [[ $CHKFILES > $NFILES ]]
 			then
