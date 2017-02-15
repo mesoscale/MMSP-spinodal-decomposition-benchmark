@@ -206,7 +206,7 @@ do
 	if [[ -f parallel ]] && [[ ! $NEXEC ]]
 	then
 		# Run the example in parallel, for speed.
-		rm -f test.*.dat
+		rm -f test*.dat
 		# Note: final simulation time is written by the program,
 		# so this script finishes the partial runtime block output
 		(/usr/bin/time -f "          \"time\": %e # seconds\n        }\n      ]\n  - name: memory_usage\n    values:\n      [\n        {\n          \"value\": %M,\n          \"unit\": KB\n        }\n      ]" bash -c \
@@ -214,18 +214,19 @@ do
 		/usr/bin/mpirun.openmpi -np $CORES ./parallel test.dat $ITERS $INTER 1>>meta.yml 2>>error.log") &>>meta.yml &
 
 		# Travis CI quits after 10 minutes with no CLI activity. Give it an indication that things are running.
-		JOBID=$!
+		JOBID=$(pgrep parallel)
+		echo -n "${JOBID}: "
 		sleep 30
-		OLDFILES=$(ls -1 test*.dat | wc -l)
-		while kill -0 "$JOBID" &>/dev/null
+		NFILES=$(ls -1 test*.dat | wc -l)
+		while kill -0 "${JOBID}" &>/dev/null
 		do
-			sleep 28
-			NEWFILES=$(ls -1 test*.dat | wc -l)
-			if [[ $NEWFILES > $OLDFILES ]]
+			sleep 59
+			CHKFILES=$(ls -1 test*.dat | wc -l)
+			if [[ $CHKFILES > $NFILES ]]
 			then
 				# A checkpoint was written while we slept. Tell the terminal.
-				echo -n "$NEWFILES "
-				OLDFILES=$NEWFILES
+				echo -n "${CHKFILES} "
+				NFILES=$CHKFILES
 			fi
 		done
 
