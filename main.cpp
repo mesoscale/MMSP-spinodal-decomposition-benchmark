@@ -33,7 +33,6 @@
 #include<sstream>
 #include<cstdlib>
 #include<cctype>
-#include<vector>
 #include<time.h>
 
 int main(int argc, char* argv[]) {
@@ -303,10 +302,6 @@ int main(int argc, char* argv[]) {
 
 			double t = dt * iterations_start;
 
-			// Use rate (dF/dt/V) to check for equilibrium.
-			// Stop evolving when rate drops below unity.
-			double rate = 1000.0;
-
 			double simtimes = 0;
 
 			// perform computation
@@ -334,10 +329,9 @@ int main(int argc, char* argv[]) {
 				simtimes = t;
 			}
 
-			for (int i = iterations_start; i < steps && rate>1.0; i += increment) {
+			for (int i = iterations_start; i < steps; i += increment) {
 				double oldF = MMSP::update(grid, increment);
 				double F = Helmholtz(grid);
-				rate = (oldF - F) / (1.0e-14 * V * dt); // -dF/dt/V
 
 				t += dt * increment;
 				simtimes = t;
