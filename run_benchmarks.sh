@@ -80,7 +80,7 @@ do
 		;;
 		--long)
 			ITERS=$((10*$ITERS))
-			INTER=$(($ITERS/10))
+			INTER=$(($ITERS/100))
 		;;
 		--extra)
 			ITERS=$((100*$ITERS))
